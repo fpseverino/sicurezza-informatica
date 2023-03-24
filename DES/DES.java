@@ -1,42 +1,31 @@
 public class DES {
-    public static void main(String[] args) {
-        // try to encrypt and decrypt 8 64-bit blocks with different keys
-        for (int i = 0; i < 8; i++) {
-            String key = randomString(64);
-            String plaintext = randomString(64);
-            String ciphertext = encrypt(plaintext, key);
-            String decrypted = decrypt(ciphertext, key);
-            System.out.println("Round " + i + ": " + plaintext.equals(decrypted));
-        }
-    }
-
-    public static char XOR(char bit1, char bit2) {
+    private char XOR(char bit1, char bit2) {
         if (bit1 == bit2) return '0';
         else return '1';
     }
 
-    public static String XOR(String string1, String string2) {
+    private String XOR(String string1, String string2) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < string1.length(); i++)
             output.append(XOR(string1.charAt(i), string2.charAt(i)));
         return output.toString();
     }
 
-    public static String leftShift(int times, String input) {
+    private String leftShift(int times, String input) {
         String output = input;
         for (int i = 0; i < times; i++)
             output = output.substring(1) + output.charAt(0);
         return output;
     }
 
-    public static String randomString(int length) {
+    public String randomString(int length) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < length; i++)
             output.append((int)(Math.random()*2));
         return output.toString();
     }
 
-    public static String IP(String input) {
+    private String IP(String input) {
         int[] IPtable = {
             58,	50,	42,	34,	26,	18,	10,	2,
             60,	52,	44,	36,	28,	20,	12,	4,
@@ -53,7 +42,7 @@ public class DES {
         return output.toString();
     }
 
-    public static String FP(String input) {
+    private String FP(String input) {
         int[] FPtable = {
             40,	8,	48,	16,	56,	24,	64,	32,
             39,	7,	47,	15,	55,	23,	63,	31,
@@ -70,7 +59,7 @@ public class DES {
         return output.toString();
     }
 
-    public static String E(String input) {
+    private String E(String input) {
         int[] Etable = {
             32,	1,	2,	3,	4,	5,	4,	5,
             6,	7,	8,	9,	8,	9,	10,	11,
@@ -85,7 +74,7 @@ public class DES {
         return output.toString();
     }
 
-    public static String P(String input) {
+    private String P(String input) {
         int[] Ptable = {
             16,	7,	20,	21,	29,	12,	28,	17,
             1,	15,	23,	26,	5,	18,	31,	10,
@@ -98,7 +87,7 @@ public class DES {
         return output.toString();
     }
 
-    public static String S(int number, String input) {
+    private String S(int number, String input) {
         int[][][] Sboxes = {
             {
                 {   14, 4,	13,	1,	2,	15,	11,	8,	3,	10,	6,	12,	5,	9,	0,	7   },
@@ -157,7 +146,7 @@ public class DES {
         return String.format("%4s", binaryString).replace(' ', '0');
     }
 
-    public static String dropEBits(String input) {
+    public String dropEBits(String input) {
         String output = "";
         for (int i = 0; i < input.length(); i++)
             if (input.charAt(i) != 'E')
@@ -165,7 +154,7 @@ public class DES {
         return output;
     }
 
-    public static String PC1(String input) {
+    private String PC1(String input) {
         int[] PC1table = {
             57,	49,	41,	33,	25,	17,	9,	1,
 	        58,	50,	42,	34,	26,	18,	10,	2,
@@ -186,7 +175,7 @@ public class DES {
         return dropEBits(output.toString());
     }
 
-    public static String PC2(String input) {
+    private String PC2(String input) {
         int[] PC2table = {
             14,	17,	11,	24,	1,	5,
             3,	28,	15,	6,	21,	10,
@@ -210,7 +199,7 @@ public class DES {
         return dropEBits(output.toString());
     }
 
-    public static String[] generateSubkeys(String key) {
+    private String[] generateSubkeys(String key) {
         int[] numberOfRotations = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
         String[] subkeys = new String[16];
         String PC1output = PC1(key);
@@ -224,7 +213,7 @@ public class DES {
         return subkeys;
     }
 
-    public static String F(String input, String subkey) {
+    private String F(String input, String subkey) {
         String XORoutput = XOR(E(input), subkey);
         String SboxesOutput = "";
         for (int i = 0; i < 8; i++)
@@ -232,7 +221,7 @@ public class DES {
         return P(SboxesOutput);
     }
 
-    public static String encrypt(String input, String key) {
+    public String encrypt(String input, String key) {
         String[] subkeys = generateSubkeys(key);
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
@@ -245,7 +234,7 @@ public class DES {
         return FP(R + L);
     }
 
-    public static String decrypt(String input, String key) {
+    public String decrypt(String input, String key) {
         String[] subkeys = generateSubkeys(key);
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
