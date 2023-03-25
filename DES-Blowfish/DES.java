@@ -111,19 +111,19 @@ public class DES {
 
     private static final int[] numberOfRotations = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
-    private char XOR(char bit1, char bit2) {
+    public char XOR(char bit1, char bit2) {
         if (bit1 == bit2) return '0';
         else return '1';
     }
 
-    private String XOR(String string1, String string2) {
+    public String XOR(String string1, String string2) {
         String output = "";
         for (int i = 0; i < string1.length(); i++)
             output += XOR(string1.charAt(i), string2.charAt(i));
         return output;
     }
 
-    private String leftShift(int times, String input) {
+    public String leftShift(int times, String input) {
         String output = input;
         for (int i = 0; i < times; i++)
             output = output.substring(1) + output.charAt(0);
@@ -135,6 +135,25 @@ public class DES {
         for (int i = 0; i < length; i++)
             output.append((int)(Math.random()*2));
         return output.toString();
+    }
+
+    public String increment(String binaryString) {
+        String result = "";
+        int carry = 1;
+        for (int i = binaryString.length() - 1; i >= 0; i--) {
+            int sum = Integer.parseInt(binaryString.charAt(i) + "") + carry;
+            if (sum == 2) {
+                result = "0" + result;
+                carry = 1;
+            } else if (sum == 1) {
+                result = "1" + result;
+                carry = 0;
+            } else {
+                result = "0" + result;
+                carry = 0;
+            }
+        }
+        return result;
     }
 
     private String IP(String input) {
@@ -229,13 +248,12 @@ public class DES {
         return P(SboxesOutput);
     }
 
-    public String encrypt(String input, String key) {
+    public String encrypt(String input, String key) throws IllegalArgumentException {
         String[] subkeys;
         try {
             subkeys = generateSubkeys(key);
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return null;
+            throw e;
         }
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
@@ -248,13 +266,12 @@ public class DES {
         return FP(R + L);
     }
 
-    public String decrypt(String input, String key) {
+    public String decrypt(String input, String key) throws IllegalArgumentException {
         String[] subkeys;
         try {
             subkeys = generateSubkeys(key);
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-            return null;
+            throw e;
         }
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
@@ -270,15 +287,18 @@ public class DES {
     public String CBCencrypt(String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % 64 != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
-        DES des = new DES();
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
         for (int i = 0; i < plainText.length(); i += 64) {
             String block = plainText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(XOR(block, previousCipherText), key);
-            cipherText += encryptedBlock;
-            previousCipherText = encryptedBlock;
+            try {
+                String encryptedBlock = encrypt(XOR(block, previousCipherText), key);
+                cipherText += encryptedBlock;
+                previousCipherText = encryptedBlock;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return IV + cipherText;
     }
@@ -286,15 +306,18 @@ public class DES {
     public String CBCdecrypt(String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % 64 != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
-        DES des = new DES();
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
         for (int i = 64; i < cipherText.length(); i += 64) {
             String block = cipherText.substring(i, i + 64);
-            String decryptedBlock = XOR(des.decrypt(block, key), previousCipherText);
-            plainText += decryptedBlock;
-            previousCipherText = block;
+            try {
+                String decryptedBlock = XOR(decrypt(block, key), previousCipherText);
+                plainText += decryptedBlock;
+                previousCipherText = block;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return plainText;
     }
@@ -302,16 +325,19 @@ public class DES {
     public String CFBencrypt(String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % 64 != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
-        DES des = new DES();
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
         for (int i = 0; i < plainText.length(); i += 64) {
             String block = plainText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            cipherText += XORedBlock;
-            previousCipherText = XORedBlock;
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                cipherText += XORedBlock;
+                previousCipherText = XORedBlock;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return IV + cipherText;
     }
@@ -319,16 +345,19 @@ public class DES {
     public String CFBdecrypt(String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % 64 != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
-        DES des = new DES();
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
         for (int i = 64; i < cipherText.length(); i += 64) {
             String block = cipherText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            plainText += XORedBlock;
-            previousCipherText = block;
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                plainText += XORedBlock;
+                previousCipherText = block;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return plainText;
     }
@@ -336,16 +365,19 @@ public class DES {
     public String OFBencrypt(String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % 64 != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
-        DES des = new DES();
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
         for (int i = 0; i < plainText.length(); i += 64) {
             String block = plainText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            cipherText += XORedBlock;
-            previousCipherText = encryptedBlock;
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                cipherText += XORedBlock;
+                previousCipherText = encryptedBlock;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return IV + cipherText;
     }
@@ -353,16 +385,19 @@ public class DES {
     public String OFBdecrypt(String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % 64 != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
-        DES des = new DES();
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
         for (int i = 64; i < cipherText.length(); i += 64) {
             String block = cipherText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            plainText += XORedBlock;
-            previousCipherText = encryptedBlock;
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                plainText += XORedBlock;
+                previousCipherText = encryptedBlock;
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return plainText;
     }
@@ -370,16 +405,19 @@ public class DES {
     public String CTRencrypt(String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % 64 != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
-        DES des = new DES();
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
         for (int i = 0; i < plainText.length(); i += 64) {
             String block = plainText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            cipherText += XORedBlock;
-            previousCipherText = increment(previousCipherText);
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                cipherText += XORedBlock;
+                previousCipherText = increment(previousCipherText);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
         }
         return IV + cipherText;
     }
@@ -387,36 +425,20 @@ public class DES {
     public String CTRdecrypt(String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % 64 != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
-        DES des = new DES();
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
         for (int i = 64; i < cipherText.length(); i += 64) {
             String block = cipherText.substring(i, i + 64);
-            String encryptedBlock = des.encrypt(previousCipherText, key);
-            String XORedBlock = XOR(block, encryptedBlock);
-            plainText += XORedBlock;
-            previousCipherText = increment(previousCipherText);
-        }
-        return plainText;
-    }
-
-    private String increment(String binaryString) {
-        String result = "";
-        int carry = 1;
-        for (int i = binaryString.length() - 1; i >= 0; i--) {
-            int sum = Integer.parseInt(binaryString.charAt(i) + "") + carry;
-            if (sum == 2) {
-                result = "0" + result;
-                carry = 1;
-            } else if (sum == 1) {
-                result = "1" + result;
-                carry = 0;
-            } else {
-                result = "0" + result;
-                carry = 0;
+            try {
+                String encryptedBlock = encrypt(previousCipherText, key);
+                String XORedBlock = XOR(block, encryptedBlock);
+                plainText += XORedBlock;
+                previousCipherText = increment(previousCipherText);
+            } catch (IllegalArgumentException e) {
+                throw e;
             }
         }
-        return result;
+        return plainText;
     }
 }
