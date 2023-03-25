@@ -130,6 +130,13 @@ public class DES {
         return output;
     }
 
+    public String randomString(int length) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < length; i++)
+            output.append((int)(Math.random()*2));
+        return output.toString();
+    }
+
     private String IP(String input) {
         String output = "";
         for (int i =0; i < 64; i++)
@@ -199,7 +206,9 @@ public class DES {
         return dropEBits(output.toString());
     }
 
-    private String[] generateSubkeys(String key) {
+    private String[] generateSubkeys(String key) throws IllegalArgumentException {
+        if (key.length() != 64)
+            throw new IllegalArgumentException("Key must be 64 bits long.");
         String[] subkeys = new String[16];
         String PC1output = PC1(key);
         String A = PC1output.substring(0, 28);
@@ -221,7 +230,13 @@ public class DES {
     }
 
     public String encrypt(String input, String key) {
-        String[] subkeys = generateSubkeys(key);
+        String[] subkeys;
+        try {
+            subkeys = generateSubkeys(key);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
         String R = IPoutput.substring(32);
@@ -234,7 +249,13 @@ public class DES {
     }
 
     public String decrypt(String input, String key) {
-        String[] subkeys = generateSubkeys(key);
+        String[] subkeys;
+        try {
+            subkeys = generateSubkeys(key);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
         String IPoutput = IP(input);
         String L = IPoutput.substring(0, 32);
         String R = IPoutput.substring(32);
@@ -244,5 +265,158 @@ public class DES {
             R = XOR(temp, F(R, subkeys[i]));
         }
         return FP(R + L);
+    }
+
+    public String CBCencrypt(String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % 64 != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+        DES des = new DES();
+        String cipherText = "";
+        String IV = randomString(64);
+        String previousCipherText = IV;
+        for (int i = 0; i < plainText.length(); i += 64) {
+            String block = plainText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(XOR(block, previousCipherText), key);
+            cipherText += encryptedBlock;
+            previousCipherText = encryptedBlock;
+        }
+        return IV + cipherText;
+    }
+
+    public String CBCdecrypt(String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % 64 != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+        DES des = new DES();
+        String plainText = "";
+        String IV = cipherText.substring(0, 64);
+        String previousCipherText = IV;
+        for (int i = 64; i < cipherText.length(); i += 64) {
+            String block = cipherText.substring(i, i + 64);
+            String decryptedBlock = XOR(des.decrypt(block, key), previousCipherText);
+            plainText += decryptedBlock;
+            previousCipherText = block;
+        }
+        return plainText;
+    }
+
+    public String CFBencrypt(String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % 64 != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+        DES des = new DES();
+        String cipherText = "";
+        String IV = randomString(64);
+        String previousCipherText = IV;
+        for (int i = 0; i < plainText.length(); i += 64) {
+            String block = plainText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            cipherText += XORedBlock;
+            previousCipherText = XORedBlock;
+        }
+        return IV + cipherText;
+    }
+
+    public String CFBdecrypt(String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % 64 != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+        DES des = new DES();
+        String plainText = "";
+        String IV = cipherText.substring(0, 64);
+        String previousCipherText = IV;
+        for (int i = 64; i < cipherText.length(); i += 64) {
+            String block = cipherText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            plainText += XORedBlock;
+            previousCipherText = block;
+        }
+        return plainText;
+    }
+
+    public String OFBencrypt(String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % 64 != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+        DES des = new DES();
+        String cipherText = "";
+        String IV = randomString(64);
+        String previousCipherText = IV;
+        for (int i = 0; i < plainText.length(); i += 64) {
+            String block = plainText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            cipherText += XORedBlock;
+            previousCipherText = encryptedBlock;
+        }
+        return IV + cipherText;
+    }
+
+    public String OFBdecrypt(String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % 64 != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+        DES des = new DES();
+        String plainText = "";
+        String IV = cipherText.substring(0, 64);
+        String previousCipherText = IV;
+        for (int i = 64; i < cipherText.length(); i += 64) {
+            String block = cipherText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            plainText += XORedBlock;
+            previousCipherText = encryptedBlock;
+        }
+        return plainText;
+    }
+
+    public String CTRencrypt(String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % 64 != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+        DES des = new DES();
+        String cipherText = "";
+        String IV = randomString(64);
+        String previousCipherText = IV;
+        for (int i = 0; i < plainText.length(); i += 64) {
+            String block = plainText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            cipherText += XORedBlock;
+            previousCipherText = increment(previousCipherText);
+        }
+        return IV + cipherText;
+    }
+
+    public String CTRdecrypt(String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % 64 != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+        DES des = new DES();
+        String plainText = "";
+        String IV = cipherText.substring(0, 64);
+        String previousCipherText = IV;
+        for (int i = 64; i < cipherText.length(); i += 64) {
+            String block = cipherText.substring(i, i + 64);
+            String encryptedBlock = des.encrypt(previousCipherText, key);
+            String XORedBlock = XOR(block, encryptedBlock);
+            plainText += XORedBlock;
+            previousCipherText = increment(previousCipherText);
+        }
+        return plainText;
+    }
+
+    private String increment(String binaryString) {
+        String result = "";
+        int carry = 1;
+        for (int i = binaryString.length() - 1; i >= 0; i--) {
+            int sum = Integer.parseInt(binaryString.charAt(i) + "") + carry;
+            if (sum == 2) {
+                result = "0" + result;
+                carry = 1;
+            } else if (sum == 1) {
+                result = "1" + result;
+                carry = 0;
+            } else {
+                result = "0" + result;
+                carry = 0;
+            }
+        }
+        return result;
     }
 }
