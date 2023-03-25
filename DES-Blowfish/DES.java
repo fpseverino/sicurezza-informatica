@@ -18,13 +18,6 @@ public class DES {
         return output;
     }
 
-    public String randomString(int length) {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < length; i++)
-            output.append((int)(Math.random()*2));
-        return output.toString();
-    }
-
     private String IP(String input) {
         int[] IPtable = {
             58,	50,	42,	34,	26,	18,	10,	2,
