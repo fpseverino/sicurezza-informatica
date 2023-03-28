@@ -4,9 +4,9 @@ public class Encryption {
         DES des = new DES();
         for (int i = 0; i < 8; i++) {
             try {
-                String plainText = encryption.randomString(2048);
-                String key = encryption.randomString(64);
-
+                String plainText = Encryption.randomString(2048);
+                String key = Encryption.randomString(64);
+                
                 String CBCcipherText = encryption.CBCencrypt(des, plainText, key);
                 String CBCdecryptedText = encryption.CBCdecrypt(des, CBCcipherText, key);
                 if (!plainText.equals(CBCdecryptedText)) {
@@ -54,33 +54,33 @@ public class Encryption {
         System.out.println("DES: All tests passed.");
     }
 
-    public char XOR(char bit1, char bit2) {
+    public static char XOR(char bit1, char bit2) {
         if (bit1 == bit2) return '0';
         else return '1';
     }
 
-    public String XOR(String string1, String string2) {
+    public static String XOR(String string1, String string2) {
         String output = "";
         for (int i = 0; i < string1.length(); i++)
             output += XOR(string1.charAt(i), string2.charAt(i));
         return output;
     }
 
-    public String leftShift(int times, String input) {
+    public static String leftShift(int times, String input) {
         String output = input;
         for (int i = 0; i < times; i++)
             output = output.substring(1) + output.charAt(0);
         return output;
     }
 
-    public String randomString(int length) {
+    public static String randomString(int length) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < length; i++)
             output.append((int)(Math.random()*2));
         return output.toString();
     }
 
-    public String increment(String binaryString) {
+    public static String increment(String binaryString) {
         String result = "";
         int carry = 1;
         for (int i = binaryString.length() - 1; i >= 0; i--) {

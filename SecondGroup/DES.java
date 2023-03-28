@@ -1,6 +1,4 @@
 public class DES implements Cipher {
-    private Encryption encryption = new Encryption();
-
     private static final int[] IPtable = {
         58,	50,	42,	34,	26,	18,	10,	2,
         60,	52,	44,	36,	28,	20,	12,	4,
@@ -190,15 +188,15 @@ public class DES implements Cipher {
         String A = PC1output.substring(0, 28);
         String B = PC1output.substring(28);
         for (int i = 0; i < 16; i++) {
-            A = encryption.leftShift(numberOfRotations[i], A);
-            B = encryption.leftShift(numberOfRotations[i], B);
+            A = Encryption.leftShift(numberOfRotations[i], A);
+            B = Encryption.leftShift(numberOfRotations[i], B);
             subkeys[i] = PC2(A + B);
         }
         return subkeys;
     }
 
     private String F(String input, String subkey) {
-        String XORoutput = encryption.XOR(E(input), subkey);
+        String XORoutput = Encryption.XOR(E(input), subkey);
         String SboxesOutput = "";
         for (int i = 0; i < 8; i++)
             SboxesOutput += S(i, XORoutput.substring(i * 6, (i + 1) * 6));
@@ -218,7 +216,7 @@ public class DES implements Cipher {
         for (int i = 0; i < 16; i++) {
             String temp = L;
             L = R;
-            R = encryption.XOR(temp, F(R, subkeys[i]));
+            R = Encryption.XOR(temp, F(R, subkeys[i]));
         }
         return FP(R + L);
     }
@@ -236,7 +234,7 @@ public class DES implements Cipher {
         for (int i = 15; i >= 0; i--) {
             String temp = L;
             L = R;
-            R = encryption.XOR(temp, F(R, subkeys[i]));
+            R = Encryption.XOR(temp, F(R, subkeys[i]));
         }
         return FP(R + L);
     }
