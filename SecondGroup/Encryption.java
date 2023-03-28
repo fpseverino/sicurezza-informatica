@@ -7,8 +7,8 @@ public class Encryption {
                 String plainText = Encryption.randomString(2048);
                 String key = Encryption.randomString(64);
                 
-                String CBCcipherText = encryption.CBCencrypt(des, plainText, key);
-                String CBCdecryptedText = encryption.CBCdecrypt(des, CBCcipherText, key);
+                String CBCcipherText = encryption.CBCencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
+                String CBCdecryptedText = encryption.CBCdecrypt(des, Cipher.DES_BLOCK_SIZE, CBCcipherText, key);
                 if (!plainText.equals(CBCdecryptedText)) {
                     System.out.println("DES CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
                     System.out.println("Plain text: " + plainText);
@@ -17,8 +17,8 @@ public class Encryption {
                     return;
                 }
 
-                String CFBcipherText = encryption.CFBencrypt(des, plainText, key);
-                String CFBdecryptedText = encryption.CFBdecrypt(des, CFBcipherText, key);
+                String CFBcipherText = encryption.CFBencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
+                String CFBdecryptedText = encryption.CFBdecrypt(des, Cipher.DES_BLOCK_SIZE, CFBcipherText, key);
                 if (!plainText.equals(CFBdecryptedText)) {
                     System.out.println("DES CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
                     System.out.println("Plain text: " + plainText);
@@ -27,8 +27,8 @@ public class Encryption {
                     return;
                 }
 
-                String OFBcipherText = encryption.OFBencrypt(des, plainText, key);
-                String OFBdecryptedText = encryption.OFBdecrypt(des, OFBcipherText, key);
+                String OFBcipherText = encryption.OFBencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
+                String OFBdecryptedText = encryption.OFBdecrypt(des, Cipher.DES_BLOCK_SIZE, OFBcipherText, key);
                 if (!plainText.equals(OFBdecryptedText)) {
                     System.out.println("DES OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
                     System.out.println("Plain text: " + plainText);
@@ -37,8 +37,8 @@ public class Encryption {
                     return;
                 }
 
-                String CTRcipherText = encryption.CTRencrypt(des, plainText, key);
-                String CTRdecryptedText = encryption.CTRdecrypt(des, CTRcipherText, key);
+                String CTRcipherText = encryption.CTRencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
+                String CTRdecryptedText = encryption.CTRdecrypt(des, Cipher.DES_BLOCK_SIZE, CTRcipherText, key);
                 if (!plainText.equals(CTRdecryptedText)) {
                     System.out.println("DES CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
                     System.out.println("Plain text: " + plainText);
@@ -99,9 +99,9 @@ public class Encryption {
         return result;
     }
 
-    public String CBCencrypt(Cipher cipher, String plainText, String key) throws IllegalArgumentException {
-        if (plainText.length() % 64 != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+    public String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
@@ -118,9 +118,9 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CBCdecrypt(Cipher cipher, String cipherText, String key) throws IllegalArgumentException {
-        if (cipherText.length() % 64 != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+    public String CBCdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
@@ -137,9 +137,9 @@ public class Encryption {
         return plainText;
     }
 
-    public String CFBencrypt(Cipher cipher, String plainText, String key) throws IllegalArgumentException {
-        if (plainText.length() % 64 != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+    public String CFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
@@ -157,9 +157,9 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CFBdecrypt(Cipher cipher, String cipherText, String key) throws IllegalArgumentException {
-        if (cipherText.length() % 64 != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+    public String CFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
@@ -177,9 +177,9 @@ public class Encryption {
         return plainText;
     }
 
-    public String OFBencrypt(Cipher cipher, String plainText, String key) throws IllegalArgumentException {
-        if (plainText.length() % 64 != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+    public String OFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
@@ -197,9 +197,9 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String OFBdecrypt(Cipher cipher, String cipherText, String key) throws IllegalArgumentException {
-        if (cipherText.length() % 64 != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+    public String OFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;
@@ -217,9 +217,9 @@ public class Encryption {
         return plainText;
     }
 
-    public String CTRencrypt(Cipher cipher, String plainText, String key) throws IllegalArgumentException {
-        if (plainText.length() % 64 != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of 64.");
+    public String CTRencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(64);
         String previousCipherText = IV;
@@ -237,9 +237,9 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CTRdecrypt(Cipher cipher, String cipherText, String key) throws IllegalArgumentException {
-        if (cipherText.length() % 64 != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of 64.");
+    public String CTRdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, 64);
         String previousCipherText = IV;

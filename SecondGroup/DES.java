@@ -1,5 +1,5 @@
 public class DES implements Cipher {
-    private static final int[] IPtable = {
+    private static final int[] IP_TABLE = {
         58,	50,	42,	34,	26,	18,	10,	2,
         60,	52,	44,	36,	28,	20,	12,	4,
         62,	54,	46,	38,	30,	22,	14,	6,
@@ -10,7 +10,7 @@ public class DES implements Cipher {
         63,	55,	47,	39,	31,	23,	15,	7
     };
 
-    private static final int[] FPtable = {
+    private static final int[] FP_TABLE = {
         40,	8,	48,	16,	56,	24,	64,	32,
         39,	7,	47,	15,	55,	23,	63,	31,
         38,	6,	46,	14,	54,	22,	62,	30,
@@ -21,7 +21,7 @@ public class DES implements Cipher {
         33,	1,	41,	9,	49,	17,	57,	25
     };
 
-    private static final int[] Etable = {
+    private static final int[] E_TABLE = {
         32,	1,	2,	3,	4,	5,	4,	5,
         6,	7,	8,	9,	8,	9,	10,	11,
         12,	13,	12,	13,	14,	15,	16,	17,
@@ -30,14 +30,14 @@ public class DES implements Cipher {
         28,	29,	28,	29,	30,	31,	32,	1
     };
 
-    private static final int[] Ptable = {
+    private static final int[] P_TABLE = {
         16,	7,	20,	21,	29,	12,	28,	17,
         1,	15,	23,	26,	5,	18,	31,	10,
         2,	8,	24,	14,	32,	27,	3,	9,
         19,	13,	30,	6,	22,	11,	4,	25
     };
 
-    private static final int[][][] Sboxes = {
+    private static final int[][][] S_BOXES = {
         {
             {   14, 4,	13,	1,	2,	15,	11,	8,	3,	10,	6,	12,	5,	9,	0,	7   },
             {   0,  15,	7,	4,	14,	2,	13,	1,	10,	6,	12,	11,	9,	5,	3,	8   },
@@ -88,7 +88,7 @@ public class DES implements Cipher {
         }
     };
 
-    private static final int[] PC1table = {
+    private static final int[] PC1_TABLE = {
         57,	49,	41,	33,	25,	17,	9,	1,
         58,	50,	42,	34,	26,	18,	10,	2,
         59,	51,	43,	35,	27,	19,	11,	3,
@@ -98,7 +98,7 @@ public class DES implements Cipher {
         29,	21,	13,	5,	28,	20,	12,	4
     };
 
-    private static final int[] PC2table = {
+    private static final int[] PC2_TABLE = {
         14,	17,	11,	24,	1,	5,
         3,	28,	15,	6,	21,	10,
         23,	19,	12,	4,	26,	8,
@@ -109,40 +109,40 @@ public class DES implements Cipher {
         46,	42,	50,	36,	29,	32
     };
 
-    private static final int[] numberOfRotations = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
+    private static final int[] NUMBER_OF_ROTATIONS = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
     private String IP(String input) {
         String output = "";
         for (int i =0; i < 64; i++)
-            output += input.charAt(IPtable[i]-1);
+            output += input.charAt(IP_TABLE[i]-1);
         return output;
     }
 
     private String FP(String input) {
         String output = "";
         for (int i =0; i < 64; i++)
-            output += input.charAt(FPtable[i]-1);
+            output += input.charAt(FP_TABLE[i]-1);
         return output;
     }
 
     private String E(String input) {
         String output = "";
         for (int i =0; i < 48; i++)
-            output += input.charAt(Etable[i]-1);
+            output += input.charAt(E_TABLE[i]-1);
         return output;
     }
 
     private String P(String input) {
         String output = "";
         for (int i =0; i < 32; i++)
-            output += input.charAt(Ptable[i]-1);
+            output += input.charAt(P_TABLE[i]-1);
         return output;
     }
 
     private String S(int number, String input) {
         int row = Integer.parseInt("" + input.charAt(0) + input.charAt(5), 2);
         int column = Integer.parseInt(input.substring(1, 5), 2);
-        String binaryString = Integer.toBinaryString(Sboxes[number][row][column]);
+        String binaryString = Integer.toBinaryString(S_BOXES[number][row][column]);
         return String.format("%4s", binaryString).replace(' ', '0');
     }
 
@@ -159,7 +159,7 @@ public class DES implements Cipher {
         int PC1index = 0;
         for (int i = 0; i < 64; i++) {
             if ((i + 1) % 8 != 0) {
-                output += input.charAt(PC1table[PC1index] - 1);
+                output += input.charAt(PC1_TABLE[PC1index] - 1);
                 PC1index++;
             } else output += 'E';
         }
@@ -173,7 +173,7 @@ public class DES implements Cipher {
             if ((i + 1) == 9 || (i + 1) == 18 || (i + 1) == 22 || (i + 1) == 25 || (i + 1) == 35 || (i + 1) == 38 || (i + 1) == 43 || (i + 1) == 54)
                 output += 'E';
             else {
-                output += input.charAt(PC2table[PC2index] - 1);
+                output += input.charAt(PC2_TABLE[PC2index] - 1);
                 PC2index++;
             }
         }
@@ -188,8 +188,8 @@ public class DES implements Cipher {
         String A = PC1output.substring(0, 28);
         String B = PC1output.substring(28);
         for (int i = 0; i < 16; i++) {
-            A = Encryption.leftShift(numberOfRotations[i], A);
-            B = Encryption.leftShift(numberOfRotations[i], B);
+            A = Encryption.leftShift(NUMBER_OF_ROTATIONS[i], A);
+            B = Encryption.leftShift(NUMBER_OF_ROTATIONS[i], B);
             subkeys[i] = PC2(A + B);
         }
         return subkeys;
