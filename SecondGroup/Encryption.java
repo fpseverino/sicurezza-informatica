@@ -60,6 +60,10 @@ public class Encryption {
     }
 
     public static String XOR(String string1, String string2) {
+        if (isHex(string1) || isHex(string2)) {
+            string1 = toBinary(string1);
+            string2 = toBinary(string2);
+        }
         String output = "";
         for (int i = 0; i < string1.length(); i++)
             output += XOR(string1.charAt(i), string2.charAt(i));
@@ -99,7 +103,16 @@ public class Encryption {
         return result;
     }
 
-    public static String hexToBinary(String input) {
+    public static boolean isBinary(String input) {
+        return input.matches("[01]+");
+    }
+
+    public static boolean isHex(String input) {
+        return input.matches("[0-9A-Fa-f]+");
+    }
+
+    public static String toBinary(String input) {
+        if (isBinary(input)) return input;
         String output = "";
         for (int i = 0; i < input.length(); i++) {
             String binary = Integer.toBinaryString(Integer.parseInt(input.charAt(i) + "", 16));
@@ -110,12 +123,20 @@ public class Encryption {
         return output;
     }
 
-    public static String binaryToHex(String input) {
+    public static String toHex(String input) {
+        if (isHex(input)) return input;
         String output = "";
         for (int i = 0; i < input.length(); i += 4) {
             String hex = Integer.toHexString(Integer.parseInt(input.substring(i, i + 4), 2));
             output += hex;
         }
+        return output;
+    }
+
+    public static String[] splitHexStringInBytes(String input) {
+        String[] output = new String[input.length() / 2];
+        for (int i = 0; i < input.length(); i += 2)
+            output[i / 2] = input.substring(i, i + 2);
         return output;
     }
 

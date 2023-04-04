@@ -70,29 +70,33 @@ public class AES implements Cipher {
     private String[] generateSubkeys(String key) throws IllegalArgumentException {
         if (key.length() != 128 && key.length() != 192 && key.length() != 256)
             throw new IllegalArgumentException("Key length must be 128, 192 or 256 bits");
-        int N = key.length() / 32;
-        String[] K = new String[N];
+        int N = key.length() / 32; // Length of the key in 32-bit words
+        String[] K = new String[N];  // 32-bit words of the original key
         for (int i = 0; i < N; i++)
-            K[i] = Encryption.binaryToHex(key.substring(i * 32, i * 32 + 32));
+            K[i] = Encryption.toHex(key.substring(i * 32, i * 32 + 32));
         int R = numberOfRounds(key) + 1;
-        String[] W = new String[4 * R];
+        String[] W = new String[4 * R]; // 32-bit words of the expanded key
         for (int i = 0; i < N; i++)
             W[i] = K[i];
         for (int i = N; i < 4 * R; i++) {
             String temp = W[i - 1];
             if (i % N == 0)
-                temp = Encryption.binaryToHex(Encryption.XOR(Encryption.hexToBinary(subWord(rotWord(temp))), Encryption.hexToBinary(R_CON[i / N])));
+                temp = Encryption.toHex(Encryption.XOR(subWord(rotWord(temp)), R_CON[i / N]));
             else if (N > 6 && i % N == 4)
                 temp = subWord(temp);
-            W[i] = Encryption.binaryToHex(Encryption.XOR(Encryption.hexToBinary(W[i - N]), Encryption.hexToBinary(temp)));
+            W[i] = Encryption.toHex(Encryption.XOR(W[i - N], temp));
         }
-        return W;
+        String[] subkeys = new String[R]; // 128-bit subkeys
+        for (int i = 0; i < R; i++)
+            subkeys[i] = W[i * 4] + W[i * 4 + 1] + W[i * 4 + 2] + W[i * 4 + 3];
+        return subkeys;
     }
 
-    private String[] addRoundKey(String[] state, String[] subkeys) {
+    private String[] addRoundKey(String[] state, String subkey) {
         String[] newState = new String[16];
+        String[] roundKey = Encryption.splitHexStringInBytes(subkey);
         for (int i = 0; i < 16; i++)
-            newState[i] = Encryption.binaryToHex(Encryption.XOR(Encryption.hexToBinary(state[i]), Encryption.hexToBinary(subkeys[i])));
+            newState[i] = Encryption.toHex(Encryption.XOR(state[i], roundKey[i]));
         return newState;
     }
 
@@ -117,6 +121,31 @@ public class AES implements Cipher {
     }
 
     private String[] mixColumns(String[] state) {
+        String[] newState = new String[16];
+        return newState;
+    }
+
+    private String[] inverseSubBytes(String[] state) {
+        String[] newState = new String[16];
+        for (int i = 0; i < 16; i++) {
+            String hex = state[i];
+            int row = Integer.parseInt(hex.substring(0, 1), 16);
+            int column = Integer.parseInt(hex.substring(1), 16);
+            newState[i] = INVERSE_S_BOX[row][column];
+        }
+        return newState;
+    }
+
+    private String[] inverseShiftRows(String[] state) {
+        String[] newState = new String[16];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++)
+                newState[i * 4 + j] = state[i * 4 + (j + 4 - i) % 4];
+        }
+        return newState;
+    }
+
+    private String[] inverseMixColumns(String[] state) {
         String[] newState = new String[16];
         return newState;
     }
