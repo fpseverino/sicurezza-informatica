@@ -99,14 +99,34 @@ public class Encryption {
         return result;
     }
 
+    public static String hexToBinary(String input) {
+        String output = "";
+        for (int i = 0; i < input.length(); i++) {
+            String binary = Integer.toBinaryString(Integer.parseInt(input.charAt(i) + "", 16));
+            while (binary.length() < 4)
+                binary = "0" + binary;
+            output += binary;
+        }
+        return output;
+    }
+
+    public static String binaryToHex(String input) {
+        String output = "";
+        for (int i = 0; i < input.length(); i += 4) {
+            String hex = Integer.toHexString(Integer.parseInt(input.substring(i, i + 4), 2));
+            output += hex;
+        }
+        return output;
+    }
+
     public String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
-        String IV = randomString(64);
+        String IV = randomString(blockSize);
         String previousCipherText = IV;
-        for (int i = 0; i < plainText.length(); i += 64) {
-            String block = plainText.substring(i, i + 64);
+        for (int i = 0; i < plainText.length(); i += blockSize) {
+            String block = plainText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(XOR(block, previousCipherText), key);
                 cipherText += encryptedBlock;
@@ -122,10 +142,10 @@ public class Encryption {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
-        String IV = cipherText.substring(0, 64);
+        String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
-        for (int i = 64; i < cipherText.length(); i += 64) {
-            String block = cipherText.substring(i, i + 64);
+        for (int i = blockSize; i < cipherText.length(); i += blockSize) {
+            String block = cipherText.substring(i, i + blockSize);
             try {
                 String decryptedBlock = XOR(cipher.decrypt(block, key), previousCipherText);
                 plainText += decryptedBlock;
@@ -141,10 +161,10 @@ public class Encryption {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
-        String IV = randomString(64);
+        String IV = randomString(blockSize);
         String previousCipherText = IV;
-        for (int i = 0; i < plainText.length(); i += 64) {
-            String block = plainText.substring(i, i + 64);
+        for (int i = 0; i < plainText.length(); i += blockSize) {
+            String block = plainText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
@@ -161,10 +181,10 @@ public class Encryption {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
-        String IV = cipherText.substring(0, 64);
+        String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
-        for (int i = 64; i < cipherText.length(); i += 64) {
-            String block = cipherText.substring(i, i + 64);
+        for (int i = blockSize; i < cipherText.length(); i += blockSize) {
+            String block = cipherText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
@@ -181,10 +201,10 @@ public class Encryption {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
-        String IV = randomString(64);
+        String IV = randomString(blockSize);
         String previousCipherText = IV;
-        for (int i = 0; i < plainText.length(); i += 64) {
-            String block = plainText.substring(i, i + 64);
+        for (int i = 0; i < plainText.length(); i += blockSize) {
+            String block = plainText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
@@ -201,10 +221,10 @@ public class Encryption {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
-        String IV = cipherText.substring(0, 64);
+        String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
-        for (int i = 64; i < cipherText.length(); i += 64) {
-            String block = cipherText.substring(i, i + 64);
+        for (int i = blockSize; i < cipherText.length(); i += blockSize) {
+            String block = cipherText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
@@ -221,10 +241,10 @@ public class Encryption {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
-        String IV = randomString(64);
+        String IV = randomString(blockSize);
         String previousCipherText = IV;
-        for (int i = 0; i < plainText.length(); i += 64) {
-            String block = plainText.substring(i, i + 64);
+        for (int i = 0; i < plainText.length(); i += blockSize) {
+            String block = plainText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
@@ -241,10 +261,10 @@ public class Encryption {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
-        String IV = cipherText.substring(0, 64);
+        String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
-        for (int i = 64; i < cipherText.length(); i += 64) {
-            String block = cipherText.substring(i, i + 64);
+        for (int i = blockSize; i < cipherText.length(); i += blockSize) {
+            String block = cipherText.substring(i, i + blockSize);
             try {
                 String encryptedBlock = cipher.encrypt(previousCipherText, key);
                 String XORedBlock = XOR(block, encryptedBlock);
