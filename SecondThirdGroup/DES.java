@@ -112,31 +112,31 @@ public class DES implements Cipher {
     private static final int[] NUMBER_OF_ROTATIONS = {1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1};
 
     private String IP(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i =0; i < 64; i++)
-            output += input.charAt(IP_TABLE[i]-1);
-        return output;
+            output.append(input.charAt(IP_TABLE[i]-1));
+        return output.toString();
     }
 
     private String FP(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i =0; i < 64; i++)
-            output += input.charAt(FP_TABLE[i]-1);
-        return output;
+            output.append(input.charAt(FP_TABLE[i]-1));
+        return output.toString();
     }
 
     private String E(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i =0; i < 48; i++)
-            output += input.charAt(E_TABLE[i]-1);
-        return output;
+            output.append(input.charAt(E_TABLE[i]-1));
+        return output.toString();
     }
 
     private String P(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i =0; i < 32; i++)
-            output += input.charAt(P_TABLE[i]-1);
-        return output;
+            output.append(input.charAt(P_TABLE[i]-1));
+        return output.toString();
     }
 
     private String S(int number, String input) {
@@ -147,33 +147,33 @@ public class DES implements Cipher {
     }
 
     public String dropEBits(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i = 0; i < input.length(); i++)
             if (input.charAt(i) != 'E')
-                output += input.charAt(i);
-        return output;
+                output.append(input.charAt(i));
+        return output.toString();
     }
 
     private String PC1(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         int PC1index = 0;
         for (int i = 0; i < 64; i++) {
             if ((i + 1) % 8 != 0) {
-                output += input.charAt(PC1_TABLE[PC1index] - 1);
+                output.append(input.charAt(PC1_TABLE[PC1index] - 1));
                 PC1index++;
-            } else output += 'E';
+            } else output.append('E');
         }
         return dropEBits(output.toString());
     }
 
     private String PC2(String input) {
-        String output = "";
+        StringBuilder output = new StringBuilder();
         int PC2index = 0;
         for (int i = 0; i < 56; i++) {
             if ((i + 1) == 9 || (i + 1) == 18 || (i + 1) == 22 || (i + 1) == 25 || (i + 1) == 35 || (i + 1) == 38 || (i + 1) == 43 || (i + 1) == 54)
-                output += 'E';
+                output.append('E');
             else {
-                output += input.charAt(PC2_TABLE[PC2index] - 1);
+                output.append(input.charAt(PC2_TABLE[PC2index] - 1));
                 PC2index++;
             }
         }
@@ -197,10 +197,10 @@ public class DES implements Cipher {
 
     private String F(String input, String subkey) {
         String XORoutput = Encryption.XOR(E(input), subkey);
-        String SboxesOutput = "";
+        StringBuilder SboxesOutput = new StringBuilder();
         for (int i = 0; i < 8; i++)
-            SboxesOutput += S(i, XORoutput.substring(i * 6, (i + 1) * 6));
-        return P(SboxesOutput);
+            SboxesOutput.append(S(i, XORoutput.substring(i * 6, (i + 1) * 6)));
+        return P(SboxesOutput.toString());
     }
 
     public String encrypt(String input, String key) throws IllegalArgumentException {

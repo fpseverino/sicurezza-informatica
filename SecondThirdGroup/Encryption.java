@@ -2,48 +2,37 @@ public class Encryption {
     public static void main(String[] args) {
         Encryption encryption = new Encryption();
         DES des = new DES();
+        AES aes = new AES();
         for (int i = 0; i < 8; i++) {
             try {
                 String plainText = Encryption.randomString(2048);
-                String key = Encryption.randomString(64);
+                String key = Encryption.randomString(128);
                 
-                String CBCcipherText = encryption.CBCencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
-                String CBCdecryptedText = encryption.CBCdecrypt(des, Cipher.DES_BLOCK_SIZE, CBCcipherText, key);
+                String CBCcipherText = encryption.CBCencrypt(aes, 128, plainText, key);
+                String CBCdecryptedText = encryption.CBCdecrypt(aes, 128, CBCcipherText, key);
                 if (!plainText.equals(CBCdecryptedText)) {
-                    System.out.println("DES CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
-                    System.out.println("Plain text: " + plainText);
-                    System.out.println("Cipher text: " + CBCcipherText);
-                    System.out.println("Decrypted text: " + CBCdecryptedText);
+                    System.out.println("CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
                     return;
                 }
 
-                String CFBcipherText = encryption.CFBencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
-                String CFBdecryptedText = encryption.CFBdecrypt(des, Cipher.DES_BLOCK_SIZE, CFBcipherText, key);
+                String CFBcipherText = encryption.CFBencrypt(aes, 128, plainText, key);
+                String CFBdecryptedText = encryption.CFBdecrypt(aes, 128, CFBcipherText, key);
                 if (!plainText.equals(CFBdecryptedText)) {
-                    System.out.println("DES CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
-                    System.out.println("Plain text: " + plainText);
-                    System.out.println("Cipher text: " + CFBcipherText);
-                    System.out.println("Decrypted text: " + CFBdecryptedText);
+                    System.out.println("CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
                     return;
                 }
 
-                String OFBcipherText = encryption.OFBencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
-                String OFBdecryptedText = encryption.OFBdecrypt(des, Cipher.DES_BLOCK_SIZE, OFBcipherText, key);
+                String OFBcipherText = encryption.OFBencrypt(aes, 128, plainText, key);
+                String OFBdecryptedText = encryption.OFBdecrypt(aes, 128, OFBcipherText, key);
                 if (!plainText.equals(OFBdecryptedText)) {
-                    System.out.println("DES OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
-                    System.out.println("Plain text: " + plainText);
-                    System.out.println("Cipher text: " + OFBcipherText);
-                    System.out.println("Decrypted text: " + OFBdecryptedText);
+                    System.out.println("OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
                     return;
                 }
 
-                String CTRcipherText = encryption.CTRencrypt(des, Cipher.DES_BLOCK_SIZE, plainText, key);
-                String CTRdecryptedText = encryption.CTRdecrypt(des, Cipher.DES_BLOCK_SIZE, CTRcipherText, key);
+                String CTRcipherText = encryption.CTRencrypt(aes, 128, plainText, key);
+                String CTRdecryptedText = encryption.CTRdecrypt(aes, 128, CTRcipherText, key);
                 if (!plainText.equals(CTRdecryptedText)) {
-                    System.out.println("DES CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
-                    System.out.println("Plain text: " + plainText);
-                    System.out.println("Cipher text: " + CTRcipherText);
-                    System.out.println("Decrypted text: " + CTRdecryptedText);
+                    System.out.println("CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
                     return;
                 }
             } catch (IllegalArgumentException e) {
@@ -60,13 +49,16 @@ public class Encryption {
     }
 
     public static String XOR(String string1, String string2) {
-        if (isHex(string1) || isHex(string2)) {
-            string1 = toBinary(string1);
-            string2 = toBinary(string2);
-        }
-        String output = "";
+        StringBuilder output = new StringBuilder();
         for (int i = 0; i < string1.length(); i++)
-            output += XOR(string1.charAt(i), string2.charAt(i));
+            output.append(XOR(string1.charAt(i), string2.charAt(i)));
+        return output.toString();
+    }
+
+    public static String[] XOR(String[] string1, String[] string2) {
+        String[] output = new String[string1.length];
+        for (int i = 0; i < string1.length; i++)
+            output[i] = toHex(XOR(toBinary(string1[i]), toBinary(string2[i])));
         return output;
     }
 
@@ -103,13 +95,9 @@ public class Encryption {
         return result;
     }
 
-    public static boolean isBinary(String input) {
-        return input.matches("[01]+");
-    }
+    public static boolean isBinary(String input) { return input.matches("[01]+"); }
 
-    public static boolean isHex(String input) {
-        return input.matches("[0-9A-Fa-f]+");
-    }
+    public static boolean isHex(String input) { return input.matches("[0-9A-Fa-f]+"); }
 
     public static String toBinary(String input) {
         if (isBinary(input)) return input;
@@ -125,19 +113,10 @@ public class Encryption {
 
     public static String toHex(String input) {
         if (isHex(input)) return input;
-        String output = "";
-        for (int i = 0; i < input.length(); i += 4) {
-            String hex = Integer.toHexString(Integer.parseInt(input.substring(i, i + 4), 2));
-            output += hex;
-        }
-        return output;
-    }
-
-    public static String[] splitHexStringInBytes(String input) {
-        String[] output = new String[input.length() / 2];
-        for (int i = 0; i < input.length(); i += 2)
-            output[i / 2] = input.substring(i, i + 2);
-        return output;
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < input.length(); i += 4)
+            output.append(Integer.toHexString(Integer.parseInt(input.substring(i, i + 4), 2)));
+        return output.toString();
     }
 
     public String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {

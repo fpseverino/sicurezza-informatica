@@ -1,5 +1,16 @@
 public class AES implements Cipher {
-    private static final String[] R_CON = {"01000000", "02000000", "04000000", "08000000", "10000000", "20000000", "40000000", "80000000", "1b000000", "36000000"};
+    private static final String[][] R_CON = {
+        {"00", "00", "00", "01"},
+        {"00", "00", "00", "02"},
+        {"00", "00", "00", "04"},
+        {"00", "00", "00", "08"},
+        {"00", "00", "00", "10"},
+        {"00", "00", "00", "20"},
+        {"00", "00", "00", "40"},
+        {"00", "00", "00", "80"},
+        {"00", "00", "00", "1b"},
+        {"00", "00", "00", "36"}
+    };
 
     private static final String[][] S_BOX = {
         {"63",	"7c",	"77",	"7b",	"f2",	"6b",	"6f",	"c5",	"30",	"01",	"67",	"2b",	"fe",	"d7",	"ab",	"76"},
@@ -39,7 +50,7 @@ public class AES implements Cipher {
         {"17",	"2b",	"04",	"7e",	"ba",	"77",	"d6",	"26",	"e1",	"69",	"14",	"63",	"55",	"21",	"0c",	"7d"}
     };
 
-    private int numberOfRounds(String key) {
+    private int numberOfRounds(String key) throws IllegalArgumentException {
         switch (key.length()) {
             case 128:
                 return 10;
@@ -48,64 +59,79 @@ public class AES implements Cipher {
             case 256:
                 return 14;
             default:
-                return -1;
+                throw new IllegalArgumentException("Key length must be 128, 192 or 256 bits");
         }
     }
 
-    private String rotWord(String word) {
-        return word.substring(2) + word.substring(0, 2);
+    private String[] rotWord(String[] word) {
+        String[] rotWord = new String[4];
+        rotWord[0] = word[1];
+        rotWord[1] = word[2];
+        rotWord[2] = word[3];
+        rotWord[3] = word[0];
+        return rotWord;
     }
 
-    private String subWord(String word) {
-        String subWord = "";
-        for (int i = 0; i < word.length(); i += 2) {
-            String hex = word.substring(i, i + 2);
-            int row = Integer.parseInt(hex.substring(0, 1), 16);
-            int column = Integer.parseInt(hex.substring(1), 16);
-            subWord += S_BOX[row][column];
+    private String[] subWord(String[] word) {
+        String[] subWord = new String[4];
+        for (int i = 0; i < 4; i++) {
+            int row = Integer.parseInt(word[i].substring(0, 1), 16);
+            int column = Integer.parseInt(word[i].substring(1, 2), 16);
+            subWord[i] = S_BOX[row][column];
         }
         return subWord;
     }
 
-    private String[] generateSubkeys(String key) throws IllegalArgumentException {
-        if (key.length() != 128 && key.length() != 192 && key.length() != 256)
-            throw new IllegalArgumentException("Key length must be 128, 192 or 256 bits");
-        int N = key.length() / 32; // Length of the key in 32-bit words
-        String[] K = new String[N];  // 32-bit words of the original key
-        for (int i = 0; i < N; i++)
-            K[i] = Encryption.toHex(key.substring(i * 32, i * 32 + 32));
-        int R = numberOfRounds(key) + 1;
-        String[] W = new String[4 * R]; // 32-bit words of the expanded key
-        for (int i = 0; i < N; i++)
-            W[i] = K[i];
-        for (int i = N; i < 4 * R; i++) {
-            String temp = W[i - 1];
-            if (i % N == 0)
-                temp = Encryption.toHex(Encryption.XOR(subWord(rotWord(temp)), R_CON[i / N]));
-            else if (N > 6 && i % N == 4)
-                temp = subWord(temp);
-            W[i] = Encryption.toHex(Encryption.XOR(W[i - N], temp));
+    private String[][] generateSubkeys(String key) throws IllegalArgumentException {
+        int R; // Number of round keys needed
+        try {
+            R = numberOfRounds(key) + 1;
+        } catch (Exception e) {
+            throw e;
         }
-        String[] subkeys = new String[R]; // 128-bit subkeys
-        for (int i = 0; i < R; i++)
-            subkeys[i] = W[i * 4] + W[i * 4 + 1] + W[i * 4 + 2] + W[i * 4 + 3];
+        int N = key.length() / 32; // Length of key in 32-bit words
+        String[][] W = new String[R][4];
+        for (int i = 0; i < N; i++) {
+            W[i][0] = Encryption.toHex(key.substring(i * 8, i * 8 + 2));
+            W[i][1] = Encryption.toHex(key.substring(i * 8 + 2, i * 8 + 4));
+            W[i][2] = Encryption.toHex(key.substring(i * 8 + 4, i * 8 + 6));
+            W[i][3] = Encryption.toHex(key.substring(i * 8 + 6, i * 8 + 8));
+        }
+        for (int i = N; i < 4 * R; i++) {
+            String[] temp = new String[4];
+            temp = W[i - 1];
+            if (i % N == 0) {
+                temp = Encryption.XOR(subWord(rotWord(temp)), R_CON[i / N]);
+            } else if (N > 6 && i % N == 4) {
+                temp = subWord(temp);
+            }
+            W[i] = Encryption.XOR(W[i - N], temp);
+        }
+        String[][] subkeys = new String[R][16];
+        // Convert array of 4 32-bit words to array of 16 bytes
+        for (int i = 0; i < R; i++) {
+            for (int j = 0; j < 4; j++) {
+                subkeys[i][j * 4] = W[i][j].substring(0, 1);
+                subkeys[i][j * 4 + 1] = W[i][j].substring(1, 2);
+                subkeys[i][j * 4 + 2] = W[i][j].substring(2, 3);
+                subkeys[i][j * 4 + 3] = W[i][j].substring(3, 4);
+            }
+        }
         return subkeys;
     }
 
-    private String[] addRoundKey(String[] state, String subkey) {
+    private String[] addRoundKey(String[] state, String[] subkey) {
         String[] newState = new String[16];
-        String[] roundKey = Encryption.splitHexStringInBytes(subkey);
         for (int i = 0; i < 16; i++)
-            newState[i] = Encryption.toHex(Encryption.XOR(state[i], roundKey[i]));
+            newState[i] = Encryption.XOR(state[i], subkey[i]);
         return newState;
     }
 
     private String[] subBytes(String[] state) {
         String[] newState = new String[16];
         for (int i = 0; i < 16; i++) {
-            String hex = state[i];
-            int row = Integer.parseInt(hex.substring(0, 1), 16);
-            int column = Integer.parseInt(hex.substring(1), 16);
+            int row = Integer.parseInt(state[i].substring(0, 1), 16);
+            int column = Integer.parseInt(state[i].substring(1, 2), 16);
             newState[i] = S_BOX[row][column];
         }
         return newState;
@@ -114,23 +140,24 @@ public class AES implements Cipher {
     private String[] shiftRows(String[] state) {
         String[] newState = new String[16];
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++)
-                newState[i * 4 + j] = state[i * 4 + (j + i) % 4];
+            newState[i] = state[i];
+            newState[i + 4] = state[(i + 1) % 4 + 4];
+            newState[i + 8] = state[(i + 2) % 4 + 8];
+            newState[i + 12] = state[(i + 3) % 4 + 12];
         }
         return newState;
     }
 
     private String[] mixColumns(String[] state) {
         String[] newState = new String[16];
-        return newState;
+        
     }
 
     private String[] inverseSubBytes(String[] state) {
         String[] newState = new String[16];
         for (int i = 0; i < 16; i++) {
-            String hex = state[i];
-            int row = Integer.parseInt(hex.substring(0, 1), 16);
-            int column = Integer.parseInt(hex.substring(1), 16);
+            int row = Integer.parseInt(state[i].substring(0, 1), 16);
+            int column = Integer.parseInt(state[i].substring(1, 2), 16);
             newState[i] = INVERSE_S_BOX[row][column];
         }
         return newState;
@@ -139,21 +166,20 @@ public class AES implements Cipher {
     private String[] inverseShiftRows(String[] state) {
         String[] newState = new String[16];
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++)
-                newState[i * 4 + j] = state[i * 4 + (j + 4 - i) % 4];
+            newState[i] = state[i];
+            newState[i + 4] = state[(i + 3) % 4 + 4];
+            newState[i + 8] = state[(i + 2) % 4 + 8];
+            newState[i + 12] = state[(i + 1) % 4 + 12];
         }
         return newState;
     }
 
     private String[] inverseMixColumns(String[] state) {
-        String[] newState = new String[16];
-        return newState;
     }
 
     public String encrypt(String plainText, String key) throws IllegalArgumentException {
-        return "";
     }
+
     public String decrypt(String cipherText, String key) throws IllegalArgumentException {
-        return "";
     }
 }
