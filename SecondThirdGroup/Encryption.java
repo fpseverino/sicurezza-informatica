@@ -1,53 +1,76 @@
+import java.util.Scanner;
+
 public class Encryption {
     public static void main(String[] args) {
-        DES des = new DES();
-        AES aes = new AES();
-        int blockSize = 128;
+        Cipher cipher;
+        int blockSize, keyLength;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the cipher type (aes or des): ");
+        String cipherType = scanner.nextLine();
+        if (cipherType.equals("aes")) {
+            cipher = new AES();
+            blockSize = 128;
+            keyLength = 128;
+        } else if (cipherType.equals("des")) {
+            cipher = new DES();
+            blockSize = 64;
+            keyLength = 64;
+        } else {
+            System.out.println("Invalid cipher type");
+            return;
+        }
+        boolean allTestPassed = true;
         for (int i = 0; i < 2; i++) {
             try {
                 String plainText = Encryption.randomString(128);
-                String key = Encryption.randomString(128);
+                String key = Encryption.randomString(keyLength);
                 
-                String CBCcipherText = CBCencrypt(aes, blockSize, plainText, key);
-                String CBCdecryptedText = CBCdecrypt(aes, blockSize, CBCcipherText, key);
+                String CBCcipherText = CBCencrypt(cipher, blockSize, plainText, key);
+                String CBCdecryptedText = CBCdecrypt(cipher, blockSize, CBCcipherText, key);
                 if (!plainText.equals(CBCdecryptedText)) {
                     System.out.println("CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
                     System.out.println("\t" + binaryToHex(plainText));
                     System.out.println("\t" + binaryToHex(CBCdecryptedText));
                     System.out.println();
+                    allTestPassed = false;
                 }
 
-                String CFBcipherText = CFBencrypt(aes, blockSize, plainText, key);
-                String CFBdecryptedText = CFBdecrypt(aes, blockSize, CFBcipherText, key);
+                String CFBcipherText = CFBencrypt(cipher, blockSize, plainText, key);
+                String CFBdecryptedText = CFBdecrypt(cipher, blockSize, CFBcipherText, key);
                 if (!plainText.equals(CFBdecryptedText)) {
                     System.out.println("CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
                     System.out.println("\t" + binaryToHex(plainText));
                     System.out.println("\t" + binaryToHex(CFBdecryptedText));
                     System.out.println();
+                    allTestPassed = false;
                 }
 
-                String OFBcipherText = OFBencrypt(aes, blockSize, plainText, key);
-                String OFBdecryptedText = OFBdecrypt(aes, blockSize, OFBcipherText, key);
+                String OFBcipherText = OFBencrypt(cipher, blockSize, plainText, key);
+                String OFBdecryptedText = OFBdecrypt(cipher, blockSize, OFBcipherText, key);
                 if (!plainText.equals(OFBdecryptedText)) {
                     System.out.println("OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
                     System.out.println("\t" + binaryToHex(plainText));
                     System.out.println("\t" + binaryToHex(OFBdecryptedText));
                     System.out.println();
+                    allTestPassed = false;
                 }
 
-                String CTRcipherText = CTRencrypt(aes, blockSize, plainText, key);
-                String CTRdecryptedText = CTRdecrypt(aes, blockSize, CTRcipherText, key);
+                String CTRcipherText = CTRencrypt(cipher, blockSize, plainText, key);
+                String CTRdecryptedText = CTRdecrypt(cipher, blockSize, CTRcipherText, key);
                 if (!plainText.equals(CTRdecryptedText)) {
                     System.out.println("CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
                     System.out.println("\t" + binaryToHex(plainText));
                     System.out.println("\t" + binaryToHex(CTRdecryptedText));
                     System.out.println();
+                    allTestPassed = false;
                 }
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
                 return;
             }
         }
+        if (allTestPassed)
+            System.out.println("All tests passed.");
     }
 
     public static char XOR(char bit1, char bit2) {
