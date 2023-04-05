@@ -1,46 +1,38 @@
 public class Encryption {
     public static void main(String[] args) {
-        Encryption encryption = new Encryption();
         DES des = new DES();
         AES aes = new AES();
+        int blockSize = 64;
         for (int i = 0; i < 8; i++) {
             try {
                 String plainText = Encryption.randomString(2048);
-                String key = Encryption.randomString(128);
+                String key = Encryption.randomString(64);
                 
-                String CBCcipherText = encryption.CBCencrypt(aes, 128, plainText, key);
-                String CBCdecryptedText = encryption.CBCdecrypt(aes, 128, CBCcipherText, key);
-                if (!plainText.equals(CBCdecryptedText)) {
+                String CBCcipherText = CBCencrypt(des, blockSize, plainText, key);
+                String CBCdecryptedText = CBCdecrypt(des, blockSize, CBCcipherText, key);
+                if (!plainText.equals(CBCdecryptedText))
                     System.out.println("CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
-                    return;
-                }
 
-                String CFBcipherText = encryption.CFBencrypt(aes, 128, plainText, key);
-                String CFBdecryptedText = encryption.CFBdecrypt(aes, 128, CFBcipherText, key);
-                if (!plainText.equals(CFBdecryptedText)) {
+                String CFBcipherText = CFBencrypt(des, blockSize, plainText, key);
+                String CFBdecryptedText = CFBdecrypt(des, blockSize, CFBcipherText, key);
+                if (!plainText.equals(CFBdecryptedText))
                     System.out.println("CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
-                    return;
-                }
 
-                String OFBcipherText = encryption.OFBencrypt(aes, 128, plainText, key);
-                String OFBdecryptedText = encryption.OFBdecrypt(aes, 128, OFBcipherText, key);
-                if (!plainText.equals(OFBdecryptedText)) {
+                String OFBcipherText = OFBencrypt(des, blockSize, plainText, key);
+                String OFBdecryptedText = OFBdecrypt(des, blockSize, OFBcipherText, key);
+                if (!plainText.equals(OFBdecryptedText))
                     System.out.println("OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
-                    return;
-                }
 
-                String CTRcipherText = encryption.CTRencrypt(aes, 128, plainText, key);
-                String CTRdecryptedText = encryption.CTRdecrypt(aes, 128, CTRcipherText, key);
-                if (!plainText.equals(CTRdecryptedText)) {
+                String CTRcipherText = CTRencrypt(des, blockSize, plainText, key);
+                String CTRdecryptedText = CTRdecrypt(des, blockSize, CTRcipherText, key);
+                if (!plainText.equals(CTRdecryptedText))
                     System.out.println("CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
-                    return;
-                }
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
                 return;
             }
         }
-        System.out.println("DES: All tests passed.");
+        System.out.println("All tests passed.");
     }
 
     public static char XOR(char bit1, char bit2) {
@@ -55,11 +47,11 @@ public class Encryption {
         return output.toString();
     }
 
-    public static String[] XOR(String[] string1, String[] string2) {
-        String[] output = new String[string1.length];
-        for (int i = 0; i < string1.length; i++)
-            output[i] = toHex(XOR(toBinary(string1[i]), toBinary(string2[i])));
-        return output;
+    public static String hexXOR(String hex1, String hex2) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < hex1.length(); i++)
+            output.append(Integer.toHexString(Integer.parseInt(hex1.charAt(i) + "", 16) ^ Integer.parseInt(hex2.charAt(i) + "", 16)));
+        return output.toString();
     }
 
     public static String leftShift(int times, String input) {
@@ -95,31 +87,21 @@ public class Encryption {
         return result;
     }
 
-    public static boolean isBinary(String input) { return input.matches("[01]+"); }
-
-    public static boolean isHex(String input) { return input.matches("[0-9A-Fa-f]+"); }
-
-    public static String toBinary(String input) {
-        if (isBinary(input)) return input;
-        String output = "";
-        for (int i = 0; i < input.length(); i++) {
-            String binary = Integer.toBinaryString(Integer.parseInt(input.charAt(i) + "", 16));
-            while (binary.length() < 4)
-                binary = "0" + binary;
-            output += binary;
-        }
-        return output;
-    }
-
-    public static String toHex(String input) {
-        if (isHex(input)) return input;
+    public static String binaryToHex(String binaryString) {
         StringBuilder output = new StringBuilder();
-        for (int i = 0; i < input.length(); i += 4)
-            output.append(Integer.toHexString(Integer.parseInt(input.substring(i, i + 4), 2)));
+        for (int i = 0; i < binaryString.length(); i += 4)
+            output.append(Integer.toHexString(Integer.parseInt(binaryString.substring(i, i + 4), 2)));
         return output.toString();
     }
 
-    public String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+    public static String hexToBinary(String hexString) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < hexString.length(); i++)
+            output.append(String.format("%4s", Integer.toBinaryString(Integer.parseInt(hexString.charAt(i) + "", 16))).replace(' ', '0'));
+        return output.toString();
+    }
+
+    public static String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
@@ -138,7 +120,7 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CBCdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+    public static String CBCdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
@@ -157,7 +139,7 @@ public class Encryption {
         return plainText;
     }
 
-    public String CFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+    public static String CFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
@@ -177,7 +159,7 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+    public static String CFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
@@ -197,7 +179,7 @@ public class Encryption {
         return plainText;
     }
 
-    public String OFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+    public static String OFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
@@ -217,7 +199,7 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String OFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+    public static String OFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
@@ -237,7 +219,7 @@ public class Encryption {
         return plainText;
     }
 
-    public String CTRencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+    public static String CTRencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
             throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
@@ -257,7 +239,7 @@ public class Encryption {
         return IV + cipherText;
     }
 
-    public String CTRdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+    public static String CTRdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
             throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
         String plainText = "";

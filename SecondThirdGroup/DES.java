@@ -203,6 +203,7 @@ public class DES implements Cipher {
         return P(SboxesOutput.toString());
     }
 
+    @Override
     public String encrypt(String input, String key) throws IllegalArgumentException {
         String[] subkeys;
         try {
@@ -221,6 +222,7 @@ public class DES implements Cipher {
         return FP(R + L);
     }
 
+    @Override
     public String decrypt(String input, String key) throws IllegalArgumentException {
         String[] subkeys;
         try {
