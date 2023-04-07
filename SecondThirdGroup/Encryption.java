@@ -11,7 +11,8 @@ public class Encryption {
         if (cipherType.equals("aes")) {
             cipher = new AES();
             blockSize = 128;
-            keyLength = 128 * (int) (Math.random() * 3 + 1);
+            keyLength = (int) (Math.random() * 3) * 64 + 128;
+            System.out.println("Key length: " + keyLength + "\n");
         } else if (cipherType.equals("des")) {
             cipher = new DES();
             blockSize = 64;
@@ -25,8 +26,6 @@ public class Encryption {
             try {
                 String plainText = Encryption.randomString(blockSize * 2);
                 String key = Encryption.randomString(keyLength);
-                if (cipherType.equals("aes"))
-                    System.out.println("Key length: " + key.length());
 
                 String singlePlainText = Encryption.randomString(blockSize);
                 String cipherText = cipher.encrypt(singlePlainText, key);
