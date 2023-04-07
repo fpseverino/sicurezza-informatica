@@ -5,7 +5,7 @@ public class Encryption {
         Cipher cipher;
         int blockSize, keyLength;
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the cipher type (aes or des): ");
+        System.out.print("Enter the cipher type (des, bf or aes): ");
         String cipherType = scanner.nextLine();
         scanner.close();
         if (cipherType.equals("aes")) {
@@ -17,6 +17,11 @@ public class Encryption {
             cipher = new DES();
             blockSize = 64;
             keyLength = 64;
+        } else if (cipherType.equals("bf")) {
+            keyLength = (int) (Math.random() * 3) * 64 + 64;
+            System.out.println("\nKey length: " + keyLength + "\n");
+            cipher = new Blowfish(randomString(keyLength));
+            blockSize = 64;
         } else {
             System.out.println("Invalid cipher type");
             return;
