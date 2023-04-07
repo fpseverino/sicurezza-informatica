@@ -7,10 +7,11 @@ public class Encryption {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the cipher type (aes or des): ");
         String cipherType = scanner.nextLine();
+        scanner.close();
         if (cipherType.equals("aes")) {
             cipher = new AES();
             blockSize = 128;
-            keyLength = 128;
+            keyLength = 128 * (int) (Math.random() * 3 + 1);
         } else if (cipherType.equals("des")) {
             cipher = new DES();
             blockSize = 64;
@@ -22,8 +23,31 @@ public class Encryption {
         boolean allTestPassed = true;
         for (int i = 0; i < 2; i++) {
             try {
-                String plainText = Encryption.randomString(128);
+                String plainText = Encryption.randomString(blockSize * 2);
                 String key = Encryption.randomString(keyLength);
+                if (cipherType.equals("aes"))
+                    System.out.println("Key length: " + key.length());
+
+                String singlePlainText = Encryption.randomString(blockSize);
+                String cipherText = cipher.encrypt(singlePlainText, key);
+                String decryptedText = cipher.decrypt(cipherText, key);
+                if (!singlePlainText.equals(decryptedText)) {
+                    System.out.println("Encryption " + (i + 1) + ": " + plainText.equals(decryptedText));
+                    System.out.println("\t" + binaryToHex(singlePlainText));
+                    System.out.println("\t" + binaryToHex(decryptedText));
+                    System.out.println();
+                    allTestPassed = false;
+                }
+
+                String ECBcipherText = ECBencrypt(cipher, blockSize, plainText, key);
+                String ECBdecryptedText = ECBdecrypt(cipher, blockSize, ECBcipherText, key);
+                if (!plainText.equals(ECBdecryptedText)) {
+                    System.out.println("ECB " + (i + 1) + ": " + plainText.equals(ECBdecryptedText));
+                    System.out.println("\t" + binaryToHex(plainText));
+                    System.out.println("\t" + binaryToHex(ECBdecryptedText));
+                    System.out.println();
+                    allTestPassed = false;
+                }
                 
                 String CBCcipherText = CBCencrypt(cipher, blockSize, plainText, key);
                 String CBCdecryptedText = CBCdecrypt(cipher, blockSize, CBCcipherText, key);
@@ -137,6 +161,36 @@ public class Encryption {
         for (int i = 0; i < hexString.length(); i++)
             output.append(String.format("%4s", Integer.toBinaryString(Integer.parseInt(hexString.charAt(i) + "", 16))).replace(' ', '0'));
         return output.toString();
+    }
+
+    public static String ECBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
+        if (plainText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+        String cipherText = "";
+        for (int i = 0; i < plainText.length(); i += blockSize) {
+            String block = plainText.substring(i, i + blockSize);
+            try {
+                cipherText += cipher.encrypt(block, key);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
+        }
+        return cipherText;
+    }
+
+    public static String ECBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
+        if (cipherText.length() % blockSize != 0)
+            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+        String plainText = "";
+        for (int i = 0; i < cipherText.length(); i += blockSize) {
+            String block = cipherText.substring(i, i + blockSize);
+            try {
+                plainText += cipher.decrypt(block, key);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            }
+        }
+        return plainText;
     }
 
     public static String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
