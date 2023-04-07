@@ -12,7 +12,7 @@ public class Encryption {
             cipher = new AES();
             blockSize = 128;
             keyLength = (int) (Math.random() * 3) * 64 + 128;
-            System.out.println("Key length: " + keyLength + "\n");
+            System.out.println("\nKey length: " + keyLength + "\n");
         } else if (cipherType.equals("des")) {
             cipher = new DES();
             blockSize = 64;
@@ -26,17 +26,6 @@ public class Encryption {
             try {
                 String plainText = Encryption.randomString(blockSize * 2);
                 String key = Encryption.randomString(keyLength);
-
-                String singlePlainText = Encryption.randomString(blockSize);
-                String cipherText = cipher.encrypt(singlePlainText, key);
-                String decryptedText = cipher.decrypt(cipherText, key);
-                if (!singlePlainText.equals(decryptedText)) {
-                    System.out.println("Encryption " + (i + 1) + ": " + plainText.equals(decryptedText));
-                    System.out.println("\t" + binaryToHex(singlePlainText));
-                    System.out.println("\t" + binaryToHex(decryptedText));
-                    System.out.println();
-                    allTestPassed = false;
-                }
 
                 String ECBcipherText = ECBencrypt(cipher, blockSize, plainText, key);
                 String ECBdecryptedText = ECBdecrypt(cipher, blockSize, ECBcipherText, key);
@@ -109,10 +98,7 @@ public class Encryption {
     }
 
     public static String hexXOR(String hex1, String hex2) {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < hex1.length(); i++)
-            output.append(Integer.toHexString(Integer.parseInt(hex1.charAt(i) + "", 16) ^ Integer.parseInt(hex2.charAt(i) + "", 16)));
-        return output.toString();
+        return binaryToHex(XOR(hexToBinary(hex1), hexToBinary(hex2)));
     }
 
     public static String leftShift(int times, String input) {

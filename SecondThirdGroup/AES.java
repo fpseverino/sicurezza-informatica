@@ -164,7 +164,7 @@ public class AES implements Cipher {
         "d7",	"d9",	"cb",	"c5",	"ef",	"e1",	"f3",	"fd",	"a7",	"a9",	"bb",	"b5",	"9f",	"91",	"83",	"8d"
     };
 
-    private String[][] stringToState(String binaryString) {
+    public String[][] stringToState(String binaryString) {
         String text = Encryption.binaryToHex(binaryString);
         String[][] state = new String[4][4];
         for (int i = 0; i < 4; i++)
@@ -173,7 +173,7 @@ public class AES implements Cipher {
         return state;
     }
 
-    private String stateToString(String[][] state) {
+    public String stateToString(String[][] state) {
         String text = "";
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
