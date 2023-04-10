@@ -214,27 +214,27 @@ public class Blowfish implements Cipher {
         }
         String T = "0000000000000000000000000000000000000000000000000000000000000000";
         for (int i = 0; i < 18; i += 2) {
-            T = encrypt(T, key);
+            T = encrypt(T, null);
             p[i] = Encryption.binaryToHex(T.substring(0, 32));
             p[i + 1] = Encryption.binaryToHex(T.substring(32, 64));
         }
         for (int i = 0; i < 256; i += 2) {
-            T = encrypt(T, key);
+            T = encrypt(T, null);
             sBox0[i] = Encryption.binaryToHex(T.substring(0, 32));
             sBox0[i + 1] = Encryption.binaryToHex(T.substring(32, 64));
         }
         for (int i = 0; i < 256; i += 2) {
-            T = encrypt(T, key);
+            T = encrypt(T, null);
             sBox1[i] = Encryption.binaryToHex(T.substring(0, 32));
             sBox1[i + 1] = Encryption.binaryToHex(T.substring(32, 64));
         }
         for (int i = 0; i < 256; i += 2) {
-            T = encrypt(T, key);
+            T = encrypt(T, null);
             sBox2[i] = Encryption.binaryToHex(T.substring(0, 32));
             sBox2[i + 1] = Encryption.binaryToHex(T.substring(32, 64));
         }
         for (int i = 0; i < 256; i += 2) {
-            T = encrypt(T, key);
+            T = encrypt(T, null);
             sBox3[i] = Encryption.binaryToHex(T.substring(0, 32));
             sBox3[i + 1] = Encryption.binaryToHex(T.substring(32, 64));
         }
@@ -253,10 +253,10 @@ public class Blowfish implements Cipher {
         String sBox1Value = sBox1[indexB];
         String sBox2Value = sBox2[indexC];
         String sBox3Value = sBox3[indexD];
-        long a = Long.parseLong(sBox0Value.toUpperCase(), 16);
-        long b = Long.parseLong(sBox1Value.toUpperCase(), 16);
-        long c = Long.parseLong(sBox2Value.toUpperCase(), 16);
-        long d = Long.parseLong(sBox3Value.toUpperCase(), 16);
+        long a = Long.parseLong(sBox0Value, 16);
+        long b = Long.parseLong(sBox1Value, 16);
+        long c = Long.parseLong(sBox2Value, 16);
+        long d = Long.parseLong(sBox3Value, 16);
         long result = (a + b) % (long) Math.pow(2, 32);
         result ^= c;
         result = (result + d) % (long) Math.pow(2, 32);
@@ -272,14 +272,16 @@ public class Blowfish implements Cipher {
         String L = hexPlainText.substring(0, 8);
         String R = hexPlainText.substring(8, 16);
         for (int i = 0; i < 16; i++) {
+            L = Encryption.hexXOR(L, p[i]);
+            R = Encryption.hexXOR(R, F(L));
             String temp = R;
-            R = Encryption.hexXOR(L, F(Encryption.hexXOR(R, p[i])));
+            R = L;
             L = temp;
         }
         String temp = R;
         R = L;
         L = temp;
-        return Encryption.hexToBinary(Encryption.hexXOR(R, p[16]) + Encryption.hexXOR(L, p[17]));
+        return Encryption.hexToBinary(Encryption.hexXOR(L, p[17]) + Encryption.hexXOR(R, p[16]));
     }
 
     @Override
@@ -288,13 +290,15 @@ public class Blowfish implements Cipher {
         String L = hexCipherText.substring(0, 8);
         String R = hexCipherText.substring(8, 16);
         for (int i = 17; i > 1; i--) {
+            L = Encryption.hexXOR(L, p[i]);
+            R = Encryption.hexXOR(R, F(L));
             String temp = R;
-            R = Encryption.hexXOR(L, F(Encryption.hexXOR(R, p[i])));
+            R = L;
             L = temp;
         }
         String temp = R;
         R = L;
         L = temp;
-        return Encryption.hexToBinary(Encryption.hexXOR(R, p[1]) + Encryption.hexXOR(L, p[0]));
+        return Encryption.hexToBinary(Encryption.hexXOR(L, p[0]) + Encryption.hexXOR(R, p[1]));
     }
 }

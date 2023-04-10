@@ -5,25 +5,25 @@ public class Encryption {
         String cipherName;
         for (int j = 0; j < 3; j++) {
             if (j == 0) {
-                cipher = new AES();
-                blockSize = 128;
-                keyLength = (int) (Math.random() * 3) * 64 + 128;
-                cipherName = "AES-" + keyLength;
-            } else if (j == 1) {
                 cipher = new DES();
                 blockSize = 64;
                 keyLength = 64;
                 cipherName = "DES";
-            } else if (j == 2) {
+            } else if (j == 1) {
                 keyLength = (int) (Math.random() * 3) * 64 + 64;
                 cipher = new Blowfish(randomString(keyLength));
                 blockSize = 64;
                 cipherName = "Blowfish-" + keyLength;
+            } else if (j == 2) {
+                cipher = new AES();
+                blockSize = 128;
+                keyLength = (int) (Math.random() * 3) * 64 + 128;
+                cipherName = "AES-" + keyLength;
             } else {
                 return;
             }
             boolean allTestPassed = true;
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 16; i++) {
                 try {
                     String plainText = Encryption.randomString(blockSize * 2);
                     String key = Encryption.randomString(keyLength);
