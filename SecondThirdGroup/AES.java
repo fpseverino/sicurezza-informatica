@@ -174,11 +174,11 @@ public class AES implements Cipher {
     }
 
     public String stateToString(String[][] state) {
-        String text = "";
+        StringBuilder text = new StringBuilder();
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
-                text += state[j][i];
-        return Encryption.hexToBinary(text);
+                text.append(state[i][j]);
+        return Encryption.hexToBinary(text.toString());
     }
 
     private int numberOfRounds(String key) throws IllegalArgumentException {
@@ -209,22 +209,18 @@ public class AES implements Cipher {
     }
 
     private String[][][] generateSubkey(String key) throws IllegalArgumentException {
-        int R;
+        int R; // Number of round keys
         try {
             R = numberOfRounds(key) + 1;
         } catch (IllegalArgumentException e) {
             throw e;
         }
-        int N = key.length() / 32;
-        String[][] K = new String[N][4];
+        int N = key.length() / 32; // Number of 32-bit words in key
         String hexKey = Encryption.binaryToHex(key);
-        for (int i = 0; i < N; i++)
-            for (int j = 0; j < 4; j++)
-                K[i][j] = hexKey.substring(8 * i + 2 * j, 8 * i + 2 * j + 2);
         String[][] W = new String[4 * R][4];
         for (int i = 0; i < N; i++)
             for (int j = 0; j < 4; j++)
-                W[i][j] = K[i][j];
+                W[i][j] = hexKey.substring(8 * i + 2 * j, 8 * i + 2 * j + 2);
         for (int i = N; i < 4 * R; i++) {
             String[] temp = new String[4];
             for (int j = 0; j < 4; j++)
@@ -240,6 +236,13 @@ public class AES implements Cipher {
             }
             for (int j = 0; j < 4; j++)
                 W[i][j] = Encryption.hexXOR(W[i - N][j], temp[j]);
+        }
+        // Words were shifted right by 1 byte, temporary fix
+        for (int i = 0; i < 4 * R; i++) {
+            String temp = W[i][3];
+            for (int j = 3; j > 0; j--)
+                W[i][j] = W[i][j - 1];
+            W[i][0] = temp;
         }
         String[][][] subkey = new String[R][4][4];
         for (int i = 0; i < R; i++)
@@ -319,23 +322,18 @@ public class AES implements Cipher {
         } catch (IllegalArgumentException e) {
             throw e;
         }
-        String[][][] subkeys = new String[numberOfRounds + 1][4][4];
-        try {
-            subkeys = generateSubkey(key);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        }
         String[][] state = stringToState(plainText);
-        state = addRoundKey(state, subkeys[0]);
+        String[][][] subkey = generateSubkey(key);
+        state = addRoundKey(state, subkey[0]);
         for (int i = 1; i < numberOfRounds; i++) {
             state = subBytes(state);
             state = shiftRows(state);
             state = mixColumns(state);
-            state = addRoundKey(state, subkeys[i]);
+            state = addRoundKey(state, subkey[i]);
         }
         state = subBytes(state);
         state = shiftRows(state);
-        state = addRoundKey(state, subkeys[numberOfRounds]);
+        state = addRoundKey(state, subkey[numberOfRounds]);
         return stateToString(state);
     }
 
@@ -347,23 +345,18 @@ public class AES implements Cipher {
         } catch (IllegalArgumentException e) {
             throw e;
         }
-        String[][][] subkeys = new String[numberOfRounds + 1][4][4];
-        try {
-            subkeys = generateSubkey(key);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        }
         String[][] state = stringToState(cipherText);
-        state = addRoundKey(state, subkeys[numberOfRounds]);
+        String[][][] subkey = generateSubkey(key);
+        state = addRoundKey(state, subkey[numberOfRounds]);
         for (int i = numberOfRounds - 1; i > 0; i--) {
             state = inverseShiftRows(state);
             state = inverseSubBytes(state);
-            state = addRoundKey(state, subkeys[i]);
+            state = addRoundKey(state, subkey[i]);
             state = inverseMixColumns(state);
         }
         state = inverseShiftRows(state);
         state = inverseSubBytes(state);
-        state = addRoundKey(state, subkeys[0]);
+        state = addRoundKey(state, subkey[0]);
         return stateToString(state);
     }
 }

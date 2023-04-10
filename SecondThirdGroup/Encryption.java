@@ -5,7 +5,7 @@ public class Encryption {
         Cipher cipher;
         int blockSize, keyLength;
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the cipher type (des, bf or aes): ");
+        System.out.print("Enter the cipher type (des, blowfish or aes): ");
         String cipherType = scanner.nextLine();
         scanner.close();
         if (cipherType.equals("aes")) {
@@ -17,7 +17,7 @@ public class Encryption {
             cipher = new DES();
             blockSize = 64;
             keyLength = 64;
-        } else if (cipherType.equals("bf")) {
+        } else if (cipherType.equals("blowfish") || cipherType.equals("bf")) {
             keyLength = (int) (Math.random() * 3) * 64 + 64;
             System.out.println("\nKey length: " + keyLength + "\n");
             cipher = new Blowfish(randomString(keyLength));
@@ -27,7 +27,7 @@ public class Encryption {
             return;
         }
         boolean allTestPassed = true;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 8; i++) {
             try {
                 String plainText = Encryption.randomString(blockSize * 2);
                 String key = Encryption.randomString(keyLength);
