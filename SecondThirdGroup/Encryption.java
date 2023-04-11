@@ -1,75 +1,124 @@
+import java.io.*;
+import java.util.Scanner;
+
 public class Encryption {
-    public static void main(String[] args) {
-        Cipher cipher;
-        int blockSize, keyLength;
-        String cipherName;
-        for (int j = 0; j < 3; j++) {
-            if (j == 0) {
-                cipher = new DES();
-                blockSize = 64;
-                keyLength = 64;
-                cipherName = "DES";
-            } else if (j == 1) {
-                keyLength = (int) (Math.random() * 3) * 64 + 64;
-                cipher = new Blowfish(randomString(keyLength));
-                blockSize = 64;
-                cipherName = "Blowfish-" + keyLength;
-            } else if (j == 2) {
-                cipher = new AES();
-                blockSize = 128;
-                keyLength = (int) (Math.random() * 3) * 64 + 128;
-                cipherName = "AES-" + keyLength;
-            } else {
-                return;
-            }
-            boolean allTestPassed = true;
-            for (int i = 0; i < 16; i++) {
-                try {
-                    String plainText = Encryption.randomString(blockSize * 2);
-                    String key = Encryption.randomString(keyLength);
-    
-                    String ECBcipherText = ECBencrypt(cipher, blockSize, plainText, key);
-                    String ECBdecryptedText = ECBdecrypt(cipher, blockSize, ECBcipherText, key);
-                    if (!plainText.equals(ECBdecryptedText)) {
-                        System.out.println(cipherName + " ECB " + (i + 1) + ": " + plainText.equals(ECBdecryptedText));
-                        allTestPassed = false;
-                    }
-                    
-                    String CBCcipherText = CBCencrypt(cipher, blockSize, plainText, key);
-                    String CBCdecryptedText = CBCdecrypt(cipher, blockSize, CBCcipherText, key);
-                    if (!plainText.equals(CBCdecryptedText)) {
-                        System.out.println(cipherName + " CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
-                        allTestPassed = false;
-                    }
-    
-                    String CFBcipherText = CFBencrypt(cipher, blockSize, plainText, key);
-                    String CFBdecryptedText = CFBdecrypt(cipher, blockSize, CFBcipherText, key);
-                    if (!plainText.equals(CFBdecryptedText)) {
-                        System.out.println(cipherName + " CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
-                        allTestPassed = false;
-                    }
-    
-                    String OFBcipherText = OFBencrypt(cipher, blockSize, plainText, key);
-                    String OFBdecryptedText = OFBdecrypt(cipher, blockSize, OFBcipherText, key);
-                    if (!plainText.equals(OFBdecryptedText)) {
-                        System.out.println(cipherName + " OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
-                        allTestPassed = false;
-                    }
-    
-                    String CTRcipherText = CTRencrypt(cipher, blockSize, plainText, key);
-                    String CTRdecryptedText = CTRdecrypt(cipher, blockSize, CTRcipherText, key);
-                    if (!plainText.equals(CTRdecryptedText)) {
-                        System.out.println(cipherName + " CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
-                        allTestPassed = false;
-                    }
-                } catch (IllegalArgumentException e) {
-                    System.out.println(e.getMessage());
-                    return;
-                }
-            }
-            if (allTestPassed)
-                System.out.println(cipherName + ": All tests passed.");
+    public static void main(String[] args) throws IOException {
+        String key;
+        try {
+            key = args[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Usage: java Encryption <key>");
+            return;
         }
+        String keyBinary = textToBinary(key);
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Would you like to encrypt or decrypt a file? (e/d)");
+        String choice = scanner.nextLine();
+        if (!choice.equals("e") && !choice.equals("d") && !choice.equals("E") && !choice.equals("D")) {
+            System.out.println("Invalid choice");
+            scanner.close();
+            return;
+        }
+        Cipher cipher;
+        int blockSize;
+        System.out.println("Which cipher would you like to use? (des/blowfish/aes)");
+        String cipherName = scanner.nextLine();
+        if (cipherName.equals("des")) {
+            cipher = new DES();
+            blockSize = 64;
+        } else if (cipherName.equals("blowfish")) {
+            cipher = new Blowfish(keyBinary);
+            blockSize = 64;
+        } else if (cipherName.equals("aes")) {
+            cipher = new AES();
+            blockSize = 128;
+        } else {
+            System.out.println("Invalid cipher name");
+            scanner.close();
+            return;
+        }
+        System.out.println("Which mode would you like to use? (ecb/cbc/cfb/ofb/ctr)");
+        String mode = scanner.nextLine();
+        if (!mode.equals("ecb") && !mode.equals("cbc") && !mode.equals("cfb") && !mode.equals("ofb") && !mode.equals("ctr") && !mode.equals("ECB") && !mode.equals("CBC") && !mode.equals("CFB") && !mode.equals("OFB") && !mode.equals("CTR")) {
+            System.out.println("Invalid mode");
+            scanner.close();
+            return;
+        }
+        System.out.println("What is the name of the input file?");
+        String inputFileName = scanner.nextLine();
+        System.out.println("What is the name of the output file?");
+        String outputFileName = scanner.nextLine();
+        scanner.close();
+        String fileContents = readFile(inputFileName);
+        String fileContentsBinary = pad(textToBinary(fileContents), blockSize);
+        String output = new String();
+        try {
+            if (choice.equals("e") || choice.equals("E")) {
+                if (mode.equals("ecb") || mode.equals("ECB"))
+                    output = ECBencrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("cbc") || mode.equals("CBC"))
+                    output = CBCencrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("cfb") || mode.equals("CFB"))
+                    output = CFBencrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("ofb") || mode.equals("OFB"))
+                    output = OFBencrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("ctr") || mode.equals("CTR"))
+                    output = CTRencrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+            } else if (choice.equals("d") || choice.equals("D")) {
+                if (mode.equals("ecb") || mode.equals("ECB"))
+                    output = ECBdecrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("cbc") || mode.equals("CBC"))
+                    output = CBCdecrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("cfb") || mode.equals("CFB"))
+                    output = CFBdecrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("ofb") || mode.equals("OFB"))
+                    output = OFBdecrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+                else if (mode.equals("ctr") || mode.equals("CTR"))
+                    output = CTRdecrypt(cipher, blockSize, fileContentsBinary, keyBinary);
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+        String outputText = binaryToText(output);
+        writeFile(outputFileName, outputText);
+    }
+
+    public static String readFile(String filename) throws IOException {
+        StringBuilder output = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));
+        String str;
+        while ((str = reader.readLine()) != null)
+            output.append(str);
+        reader.close();
+        return output.toString();
+    }
+
+    public static void writeFile(String filename, String contents) throws IOException {
+        PrintWriter writer = new PrintWriter(new FileOutputStream(new File(filename)));
+        writer.print(contents);
+        writer.close();
+    }
+
+    public static String textToBinary(String text) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < text.length(); i++)
+            output.append(String.format("%8s", Integer.toBinaryString(text.charAt(i))).replace(' ', '0'));
+        return output.toString();
+    }
+
+    public static String binaryToText(String binary) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < binary.length(); i += 8)
+            output.append((char)Integer.parseInt(binary.substring(i, i + 8), 2));
+        return output.toString();
+    }
+
+    public static String pad(String binary, int x) {
+        StringBuilder output = new StringBuilder(binary);
+        while (output.length() % x != 0)
+            output.append("0");
+        return output.toString();
     }
 
     public static char XOR(char bit1, char bit2) {
