@@ -3,14 +3,13 @@ import java.util.Scanner;
 
 public class Encryption {
     public static void main(String[] args) throws IOException {
-        String key;
+        String keyBinary;
         try {
-            key = args[0];
+            keyBinary = textToBinary(args[0]);
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Usage: java Encryption <key>");
             return;
         }
-        String keyBinary = textToBinary(key);
         Scanner scanner = new Scanner(System.in);
         System.out.println("Would you like to encrypt or decrypt a file? (e/d)");
         String choice = scanner.nextLine();
@@ -49,8 +48,7 @@ public class Encryption {
         System.out.println("What is the name of the output file?");
         String outputFileName = scanner.nextLine();
         scanner.close();
-        String fileContents = readFile(inputFileName);
-        String fileContentsBinary = trim(textToBinary(fileContents), blockSize);
+        String fileContentsBinary = trim(textToBinary(readFile(inputFileName)), blockSize);
         String output = new String();
         try {
             if (choice.equals("e") || choice.equals("E")) {
@@ -80,8 +78,7 @@ public class Encryption {
             System.out.println(e.getMessage());
             return;
         }
-        String outputText = binaryToText(output);
-        writeFile(outputFileName, outputText);
+        writeFile(outputFileName, binaryToText(output));
     }
 
     public static String readFile(String filename) throws IOException {
