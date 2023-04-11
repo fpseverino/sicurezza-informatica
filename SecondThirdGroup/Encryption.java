@@ -50,7 +50,7 @@ public class Encryption {
         String outputFileName = scanner.nextLine();
         scanner.close();
         String fileContents = readFile(inputFileName);
-        String fileContentsBinary = pad(textToBinary(fileContents), blockSize);
+        String fileContentsBinary = trim(textToBinary(fileContents), blockSize);
         String output = new String();
         try {
             if (choice.equals("e") || choice.equals("E")) {
@@ -102,8 +102,8 @@ public class Encryption {
 
     public static String textToBinary(String text) {
         StringBuilder output = new StringBuilder();
-        for (int i = 0; i < text.length(); i++)
-            output.append(String.format("%8s", Integer.toBinaryString(text.charAt(i))).replace(' ', '0'));
+        for (char c : text.toCharArray())
+            output.append(String.format("%8s", Integer.toBinaryString(c)).replace(' ', '0'));
         return output.toString();
     }
 
@@ -114,11 +114,11 @@ public class Encryption {
         return output.toString();
     }
 
-    public static String pad(String binary, int x) {
-        StringBuilder output = new StringBuilder(binary);
-        while (output.length() % x != 0)
-            output.append("0");
-        return output.toString();
+    public static String trim(String input, int blockSize) {
+        if (input.length() % blockSize == 0)
+            return input;
+        else
+            return input.substring(0, input.length() - (input.length() % blockSize));
     }
 
     public static char XOR(char bit1, char bit2) {
