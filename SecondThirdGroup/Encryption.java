@@ -1,54 +1,66 @@
 import java.io.*;
-import java.util.Scanner;
 
 public class Encryption {
     public static void main(String[] args) throws IOException {
-        String keyBinary;
-        try {
-            keyBinary = textToBinary(args[0]);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Usage: java Encryption <key>");
-            return;
-        }
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Would you like to encrypt or decrypt a file? (e/d)");
-        String choice = scanner.nextLine();
-        if (!choice.equals("e") && !choice.equals("d") && !choice.equals("E") && !choice.equals("D")) {
-            System.out.println("Invalid choice");
-            scanner.close();
-            return;
-        }
+        String choice, cipherName, mode, keyBinary, inputFileName, outputFileName;
         Cipher cipher;
         int blockSize;
-        System.out.println("Which cipher would you like to use? (des/blowfish/aes)");
-        String cipherName = scanner.nextLine();
+        try {
+            choice = args[0];
+            cipherName = args[1];
+            mode = args[2];
+            keyBinary = textToBinary(args[3]);
+            inputFileName = args[4];
+            outputFileName = args[5];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            try {
+                if (args[0].equals("test")) test(Integer.parseInt(args[1]));
+            } catch (ArrayIndexOutOfBoundsException e2) {
+                System.out.println("Usage: java Encryption <e/d> <cipher> <mode> <key> <input file> <output file>");
+                return;
+            }
+            return;
+        }
+        if (!choice.equals("e") && !choice.equals("d") && !choice.equals("E") && !choice.equals("D")) {
+            System.out.println("Usage: java Encryption <e/d> <cipher> <mode> <key> <input file> <output file>");
+            return;
+        }
         if (cipherName.equals("des")) {
+            if (keyBinary.length() != 64) {
+                System.out.println("ERROR: DES key must be 64 bits");
+                return;
+            }
             cipher = new DES();
             blockSize = 64;
         } else if (cipherName.equals("blowfish")) {
+            if (keyBinary.length() < 32 || keyBinary.length() > 448) {
+                System.out.println("ERROR: Blowfish key must be between 32 and 448 bits");
+                return;
+            }
+            if (keyBinary.length() % 32 != 0) {
+                System.out.println("ERROR: Blowfish key must be a multiple of 32 bits");
+                return;
+            }
             cipher = new Blowfish(keyBinary);
             blockSize = 64;
         } else if (cipherName.equals("aes")) {
+            if (keyBinary.length() != 128 && keyBinary.length() != 192 && keyBinary.length() != 256) {
+                System.out.println("ERROR: AES key must be 128, 192, or 256 bits");
+                return;
+            }
             cipher = new AES();
             blockSize = 128;
         } else {
-            System.out.println("Invalid cipher name");
-            scanner.close();
+            System.out.println("ERROR: Invalid cipher name");
+            System.out.println("Usage: java Encryption <e/d> <cipher> <mode> <key> <input file> <output file>");
             return;
         }
-        System.out.println("Which mode would you like to use? (ecb/cbc/cfb/ofb/ctr)");
-        String mode = scanner.nextLine();
         if (!mode.equals("ecb") && !mode.equals("cbc") && !mode.equals("cfb") && !mode.equals("ofb") && !mode.equals("ctr") && !mode.equals("ECB") && !mode.equals("CBC") && !mode.equals("CFB") && !mode.equals("OFB") && !mode.equals("CTR")) {
-            System.out.println("Invalid mode");
-            scanner.close();
+            System.out.println("ERROR: Invalid mode");
+            System.out.println("Usage: java Encryption <e/d> <cipher> <mode> <key> <input file> <output file>");
             return;
         }
-        System.out.println("What is the name of the input file?");
-        String inputFileName = scanner.nextLine();
-        System.out.println("What is the name of the output file?");
-        String outputFileName = scanner.nextLine();
-        scanner.close();
-        String fileContentsBinary = trim(textToBinary(readFile(inputFileName)), blockSize);
+        String fileContentsBinary = textToBinary(pad(readFile(inputFileName), blockSize));
         String output = new String();
         try {
             if (choice.equals("e") || choice.equals("E")) {
@@ -81,12 +93,77 @@ public class Encryption {
         writeFile(outputFileName, binaryToText(output));
     }
 
+    public static void test(int number) {
+        Cipher cipher;
+        int blockSize, keyLength;
+        String cipherName;
+        for (int j = 0; j < 3; j++) {
+            if (j == 0) {
+                cipher = new DES();
+                blockSize = 64;
+                keyLength = 64;
+                cipherName = "DES";
+            } else if (j == 1) {
+                keyLength = (int) (Math.random() * 3) * 64 + 64;
+                cipher = new Blowfish(randomString(keyLength));
+                blockSize = 64;
+                cipherName = "Blowfish-" + keyLength;
+            } else if (j == 2) {
+                cipher = new AES();
+                blockSize = 128;
+                keyLength = (int) (Math.random() * 3) * 64 + 128;
+                cipherName = "AES-" + keyLength;
+            } else return;
+            boolean allTestPassed = true;
+            for (int i = 0; i < number; i++) {
+                try {
+                    String plainText = Encryption.randomString(blockSize * 2);
+                    String key = Encryption.randomString(keyLength);
+                    String ECBcipherText = ECBencrypt(cipher, blockSize, plainText, key);
+                    String ECBdecryptedText = ECBdecrypt(cipher, blockSize, ECBcipherText, key);
+                    if (!plainText.equals(ECBdecryptedText)) {
+                        System.out.println(cipherName + " ECB " + (i + 1) + ": " + plainText.equals(ECBdecryptedText));
+                        allTestPassed = false;
+                    }
+                    String CBCcipherText = CBCencrypt(cipher, blockSize, plainText, key);
+                    String CBCdecryptedText = CBCdecrypt(cipher, blockSize, CBCcipherText, key);
+                    if (!plainText.equals(CBCdecryptedText)) {
+                        System.out.println(cipherName + " CBC " + (i + 1) + ": " + plainText.equals(CBCdecryptedText));
+                        allTestPassed = false;
+                    }
+                    String CFBcipherText = CFBencrypt(cipher, blockSize, plainText, key);
+                    String CFBdecryptedText = CFBdecrypt(cipher, blockSize, CFBcipherText, key);
+                    if (!plainText.equals(CFBdecryptedText)) {
+                        System.out.println(cipherName + " CFB " + (i + 1) + ": " + plainText.equals(CFBdecryptedText));
+                        allTestPassed = false;
+                    }
+                    String OFBcipherText = OFBencrypt(cipher, blockSize, plainText, key);
+                    String OFBdecryptedText = OFBdecrypt(cipher, blockSize, OFBcipherText, key);
+                    if (!plainText.equals(OFBdecryptedText)) {
+                        System.out.println(cipherName + " OFB " + (i + 1) + ": " + plainText.equals(OFBdecryptedText));
+                        allTestPassed = false;
+                    }
+                    String CTRcipherText = CTRencrypt(cipher, blockSize, plainText, key);
+                    String CTRdecryptedText = CTRdecrypt(cipher, blockSize, CTRcipherText, key);
+                    if (!plainText.equals(CTRdecryptedText)) {
+                        System.out.println(cipherName + " CTR " + (i + 1) + ": " + plainText.equals(CTRdecryptedText));
+                        allTestPassed = false;
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                    return;
+                }
+            }
+            if (allTestPassed) System.out.println(cipherName + ": All tests passed.");
+        }
+    }
+
     public static String readFile(String filename) throws IOException {
         StringBuilder output = new StringBuilder();
         BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));
         String str;
         while ((str = reader.readLine()) != null)
-            output.append(str);
+            output.append(str + "\n");
         reader.close();
         return output.toString();
     }
@@ -111,11 +188,11 @@ public class Encryption {
         return output.toString();
     }
 
-    public static String trim(String input, int blockSize) {
-        if (input.length() % blockSize == 0)
-            return input;
-        else
-            return input.substring(0, input.length() - (input.length() % blockSize));
+    public static String pad(String input, int blockSize) {
+        StringBuilder output = new StringBuilder(input);
+        while (output.length() % (blockSize / 8) != 0)
+            output.append(' ');
+        return output.toString();
     }
 
     public static char XOR(char bit1, char bit2) {
@@ -183,7 +260,7 @@ public class Encryption {
 
     public static String ECBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         for (int i = 0; i < plainText.length(); i += blockSize) {
             String block = plainText.substring(i, i + blockSize);
@@ -198,7 +275,7 @@ public class Encryption {
 
     public static String ECBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         for (int i = 0; i < cipherText.length(); i += blockSize) {
             String block = cipherText.substring(i, i + blockSize);
@@ -213,7 +290,7 @@ public class Encryption {
 
     public static String CBCencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(blockSize);
         String previousCipherText = IV;
@@ -232,7 +309,7 @@ public class Encryption {
 
     public static String CBCdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
@@ -251,7 +328,7 @@ public class Encryption {
 
     public static String CFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(blockSize);
         String previousCipherText = IV;
@@ -271,7 +348,7 @@ public class Encryption {
 
     public static String CFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
@@ -291,7 +368,7 @@ public class Encryption {
 
     public static String OFBencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(blockSize);
         String previousCipherText = IV;
@@ -311,7 +388,7 @@ public class Encryption {
 
     public static String OFBdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
@@ -331,7 +408,7 @@ public class Encryption {
 
     public static String CTRencrypt(Cipher cipher, int blockSize, String plainText, String key) throws IllegalArgumentException {
         if (plainText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Plain text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Plain text length must be a multiple of " + blockSize);
         String cipherText = "";
         String IV = randomString(blockSize);
         String previousCipherText = IV;
@@ -351,7 +428,7 @@ public class Encryption {
 
     public static String CTRdecrypt(Cipher cipher, int blockSize, String cipherText, String key) throws IllegalArgumentException {
         if (cipherText.length() % blockSize != 0)
-            throw new IllegalArgumentException("Cipher text length must be a multiple of " + blockSize);
+            throw new IllegalArgumentException("ERROR: Cipher text length must be a multiple of " + blockSize);
         String plainText = "";
         String IV = cipherText.substring(0, blockSize);
         String previousCipherText = IV;
