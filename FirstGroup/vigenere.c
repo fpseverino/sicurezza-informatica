@@ -22,7 +22,6 @@ int main(int argc, const char * argv[]) {
         printTable();
         exit(EXIT_SUCCESS);
     }
-
     if (argc != 5) {
         printf("Usage: %s <e|d> <input file> <output file> <key> \n", argv[0]);
         exit(EXIT_FAILURE);
@@ -31,7 +30,7 @@ int main(int argc, const char * argv[]) {
     int i = 0;
     for (int j = 0; j < strlen(argv[4]); j++) {
         if (isalpha(argv[4][j])) {
-            key[i] = toupper(argv[4][j]) - 'A';
+            key[i] = toupper(argv[4][j]);
             i++;
         }
     }
@@ -49,7 +48,7 @@ int main(int argc, const char * argv[]) {
         free(cipherText);
         free(plainText);
     } else {
-        printf("Usage: %s <encrypt|decrypt> <input file> <output file> <key> \n", argv[0]);
+        printf("Usage: %s <e|d> <input file> <output file> <key> \n", argv[0]);
         exit(EXIT_FAILURE);
     }
     free(key);
@@ -100,8 +99,10 @@ char * readTextFile(char * fileName) {
     int i = 0;
     char c;
     while ((c = fgetc(file)) != EOF) {
-        text[i] = c;
-        i++;
+        if (isalpha(c)) {
+            text[i] = toupper(c);
+            i++;
+        }
     }
     text[i] = '\0';
     fclose(file);
