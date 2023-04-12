@@ -1,6 +1,6 @@
 //
 //  vigenere.c
-//  Vigenere
+//  sicurezza-informatica
 //
 //  Created by Francesco Paolo Severino on 07/03/23.
 //
