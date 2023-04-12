@@ -18,32 +18,41 @@ char * readTextFile(char * fileName);
 void writeTextFile(char * text, char * fileName);
 
 int main(int argc, const char * argv[]) {
-    //printTable();
+    if (argc == 2 && strcmp(argv[1], "table") == 0) {
+        printTable();
+        exit(EXIT_SUCCESS);
+    }
 
-    char * key = malloc(sizeof(char) * (strlen(argv[1]) + 1));
-    strcpy(key, argv[1]);
-    for (int i = 0; i < strlen(key); i++)
-        key[i] = toupper(key[i]) - 'A';
-    
-    char choice;
-    printf("Encrypt or decrypt? (e/d): ");
-    scanf("%c", &choice);
-
-    char * fileName = malloc(sizeof(char) * 255);
-    printf("File name: ");
-    scanf("%s", fileName);
-
-    if (choice == 'e') {
-        char * plainText = readTextFile(fileName);
+    if (argc != 5) {
+        printf("Usage: %s <e|d> <input file> <output file> <key> \n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    char * key = malloc(sizeof(char) * (strlen(argv[4]) + 1));
+    int i = 0;
+    for (int j = 0; j < strlen(argv[4]); j++) {
+        if (isalpha(argv[4][j])) {
+            key[i] = toupper(argv[4][j]) - 'A';
+            i++;
+        }
+    }
+    key[i] = '\0';
+    if (strcmp(argv[1], "e") == 0) {
+        char * plainText = readTextFile((char *)argv[2]);
         char * cipherText = encrypt(plainText, key);
-        writeTextFile(cipherText, "ciphertext.txt");
-    } else if (choice == 'd') {
-        char * cipherText = readTextFile(fileName);
+        writeTextFile(cipherText, (char *)argv[3]);
+        free(plainText);
+        free(cipherText);
+    } else if (strcmp(argv[1], "d") == 0) {
+        char * cipherText = readTextFile((char *)argv[2]);
         char * plainText = decrypt(cipherText, key);
-        writeTextFile(plainText, "plaintext.txt");
-    } else
-        printf("Invalid choice");
-
+        writeTextFile(plainText, (char *)argv[3]);
+        free(cipherText);
+        free(plainText);
+    } else {
+        printf("Usage: %s <encrypt|decrypt> <input file> <output file> <key> \n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    free(key);
     return 0;
 }
 
