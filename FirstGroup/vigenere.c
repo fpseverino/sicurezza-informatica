@@ -11,7 +11,6 @@
 #include <ctype.h>
 
 void printTable();
-
 char * encrypt(char * plainText, char * key);
 char * decrypt(char * cipherText, char * key);
 char * readTextFile(char * fileName);
@@ -23,32 +22,32 @@ int main(int argc, const char * argv[]) {
         exit(EXIT_SUCCESS);
     }
     if (argc != 5) {
-        printf("Usage: %s <e|d> <input file> <output file> <key> \n", argv[0]);
+        printf("Usage: %s <e|d> <key> <input file> <output file> \n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    char * key = malloc(sizeof(char) * (strlen(argv[4]) + 1));
+    char * key = malloc(sizeof(char) * (strlen(argv[2]) + 1));
     int i = 0;
-    for (int j = 0; j < strlen(argv[4]); j++) {
-        if (isalpha(argv[4][j])) {
-            key[i] = toupper(argv[4][j]);
+    for (int j = 0; j < strlen(argv[2]); j++) {
+        if (isalpha(argv[2][j])) {
+            key[i] = toupper(argv[2][j]);
             i++;
         }
     }
     key[i] = '\0';
     if (strcmp(argv[1], "e") == 0) {
-        char * plainText = readTextFile((char *)argv[2]);
+        char * plainText = readTextFile((char *)argv[3]);
         char * cipherText = encrypt(plainText, key);
-        writeTextFile(cipherText, (char *)argv[3]);
+        writeTextFile(cipherText, (char *)argv[4]);
         free(plainText);
         free(cipherText);
     } else if (strcmp(argv[1], "d") == 0) {
-        char * cipherText = readTextFile((char *)argv[2]);
+        char * cipherText = readTextFile((char *)argv[3]);
         char * plainText = decrypt(cipherText, key);
-        writeTextFile(plainText, (char *)argv[3]);
+        writeTextFile(plainText, (char *)argv[4]);
         free(cipherText);
         free(plainText);
     } else {
-        printf("Usage: %s <e|d> <input file> <output file> <key> \n", argv[0]);
+        printf("Usage: %s <e|d> <key> <input file> <output file> \n", argv[0]);
         exit(EXIT_FAILURE);
     }
     free(key);
