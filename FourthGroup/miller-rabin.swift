@@ -34,14 +34,11 @@ if let arg2 = Int(CommandLine.arguments[2]) {
     exit(1)
 }
 
-for _ in 0..<iter {
-    if test(n) {
-        print("composite")
-        exit(0)
-    }
+if isComposite(n, iterations: iter) {
+    print("\(n) is composite")
+} else {
+    print("\(n) is probably prime")
 }
-print("probably prime")
-exit(0)
 
 func test(_ n: Int) -> Bool {
     var N = n - 1
@@ -61,6 +58,15 @@ func test(_ n: Int) -> Bool {
         }
     }
     return true
+}
+
+func isComposite(_ n: Int, iterations: Int) -> Bool {
+    for _ in 0..<iterations {
+        if test(n) {
+            return true
+        }
+    }
+    return false
 }
 
 func power(_ b: Int, _ e: Int) -> Int {

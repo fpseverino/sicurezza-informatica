@@ -29,11 +29,14 @@ if let arg2 = Int(CommandLine.arguments[2]) {
     exit(1)
 }
 
-var r: Int
-while b != 0 {
-    r = a % b
-    a = b
-    b = r
-}
+print("The GCD is \(gcd(a, b))")
 
-print("The GCD is \(a)")
+func gcd(_ a: Int, _ b: Int) -> Int {
+    var r: Int
+    while b != 0 {
+        r = a % b
+        a = b
+        b = r
+    }
+    return a
+}
