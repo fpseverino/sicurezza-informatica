@@ -11,7 +11,7 @@ var a: Int
 var b: Int
 
 if CommandLine.argc != 3 {
-    print("Usage: euclide <number1> <number2>")
+    print("Usage: gcd <number1> <number2>")
     exit(1)
 }
 
