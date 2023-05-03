@@ -7,39 +7,6 @@
 
 import Foundation
 
-var n: Int
-var iter: Int
-
-if CommandLine.argc != 3 {
-    print("Usage: gcd <n> <iterations>")
-    exit(1)
-}
-
-if let arg1 = Int(CommandLine.arguments[1]) {
-    if arg1 > 2 && (arg1 % 2) == 1 {
-        n = arg1
-    } else {
-        print("ERROR: n must be greater than 2 and odd")
-        exit(1)
-    }
-} else {
-    print("ERROR: First argument is not a number")
-    exit(1)
-}
-
-if let arg2 = Int(CommandLine.arguments[2]) {
-    iter = arg2
-} else {
-    print("ERROR: Second argument is not a number")
-    exit(1)
-}
-
-if isComposite(n, iterations: iter) {
-    print("\(n) is composite")
-} else {
-    print("\(n) is probably prime")
-}
-
 func test(_ n: Int) -> Bool {
     var N = n - 1
     var k = 0

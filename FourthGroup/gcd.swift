@@ -7,36 +7,46 @@
 
 import Foundation
 
-var a: Int
-var b: Int
-
-if CommandLine.argc != 3 {
-    print("Usage: gcd <number1> <number2>")
-    exit(1)
-}
-
-if let arg1 = Int(CommandLine.arguments[1]) {
-    a = arg1
-} else {
-    print("ERROR: First argument is not a number")
-    exit(1)
-}
-
-if let arg2 = Int(CommandLine.arguments[2]) {
-    b = arg2
-} else {
-    print("ERROR: Second argument is not a number")
-    exit(1)
-}
-
-print("The GCD is \(gcd(a, b))")
-
 func gcd(_ a: Int, _ b: Int) -> Int {
     var r: Int
+    var a = a
+    var b = b
     while b != 0 {
         r = a % b
         a = b
         b = r
     }
     return a
+}
+
+func extendedGCD(_ a: Int, _ b: Int) -> (Int, Int, Int) {
+    var s = 0
+    var oldS = 1
+    var r = b
+    var oldR = a
+    while r != 0 {
+        let quotient = oldR / r
+        (oldR, r) = (r, oldR - quotient * r)
+        (oldS, s) = (s, oldS - quotient * s)
+    }
+    var bezoutT: Int
+    if b != 0 {
+        bezoutT = (oldR - oldS * a) / b
+    } else {
+        bezoutT = 0
+    }
+    return (oldR, oldS, bezoutT)
+}
+
+func inverse(_ a: Int, _ n: Int) -> Int? {
+    let output = extendedGCD(a, n)
+    if output.0 == 1 {
+        if output.1 < 0 {
+            return output.1 + n
+        } else {
+            return output.1
+        }
+    } else {
+        return nil
+    }
 }
