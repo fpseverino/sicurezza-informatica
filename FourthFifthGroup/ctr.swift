@@ -7,23 +7,26 @@
 
 import Foundation
 
-func ctr(num: [Int], rem: [Int]) -> Int? {
-    for i in 0..<num.count {
-        for j in i+1..<num.count {
-            if gcd(num[i], num[j]) != 1 {
+func ctr(m: [Int], a: [Int]) -> Int? {
+    if m.count != a.count {
+        return nil
+    }
+    for i in 0..<m.count {
+        for j in i+1..<m.count {
+            if gcd(m[i], m[j]) != 1 {
                 return nil
             }
         }
     }
     var prod = 1
-    for n in num {
+    for n in m {
         prod *= n
     }
     var result = 0
-    for i in 0..<num.count {
-        let pp = prod / num[i]
+    for i in 0..<m.count {
+        let pp = prod / m[i]
         // TODO: check if inverse can be safely forced unwrapped (AKA if the inverse always exists)
-        result += rem[i] * inverse(pp, num[i])! * pp
+        result += a[i] * inverse(pp, modulo: m[i])! * pp
     }
     return result % prod
 }

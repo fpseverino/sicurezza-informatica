@@ -38,7 +38,7 @@ func extendedGCD(_ a: Int, _ b: Int) -> (Int, Int, Int) {
     return (oldR, oldS, bezoutT)
 }
 
-func inverse(_ a: Int, _ n: Int) -> Int? {
+func inverse(_ a: Int, modulo n: Int) -> Int? {
     let output = extendedGCD(a, n)
     if output.0 == 1 {
         if output.1 < 0 {

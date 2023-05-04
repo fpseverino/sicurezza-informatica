@@ -16,11 +16,11 @@ func test(_ n: Int) -> Bool {
     }
     let q = (n - 1) / power(2, k)
     let a = Int.random(in: 2..<(n - 1))
-    if exponentiation(a, q, n: n) == 1 {
+    if exponentiation(a, q, modulo: n) == 1 {
         return false
     }
     for j in 0..<k {
-        if exponentiation(a, power(2, j) * q, n: n) == (n - 1) {
+        if exponentiation(a, power(2, j) * q, modulo: n) == (n - 1) {
             return false
         }
     }
@@ -40,7 +40,7 @@ func power(_ b: Int, _ e: Int) -> Int {
     Int(truncating: NSDecimalNumber(decimal: pow(Decimal(b), e)))
 }
 
-func exponentiation(_ a: Int, _ b: Int, n: Int) -> Int {
+func exponentiation(_ a: Int, _ b: Int, modulo n: Int) -> Int {
     var f = 1
     let bin = String(b, radix: 2)
     for i in bin {
