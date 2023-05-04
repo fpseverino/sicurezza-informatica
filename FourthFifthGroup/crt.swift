@@ -1,5 +1,5 @@
 //
-//  ctr.swift
+//  crt.swift
 //  sicurezza-informatica
 //
 //  Created by Francesco Paolo Severino on 03/05/23.
@@ -7,14 +7,14 @@
 
 import Foundation
 
-func ctr(m: [Int], a: [Int]) -> Int? {
+func crt(m: [Int], a: [Int]) throws -> Int {
     if m.count != a.count {
-        return nil
+        throw CRTError.notSameLength
     }
     for i in 0..<m.count {
         for j in i+1..<m.count {
             if gcd(m[i], m[j]) != 1 {
-                return nil
+                throw CRTError.notCoprime
             }
         }
     }
@@ -29,4 +29,9 @@ func ctr(m: [Int], a: [Int]) -> Int? {
         result += a[i] * inverse(pp, modulo: m[i])! * pp
     }
     return result % prod
+}
+
+enum CRTError: Error {
+    case notCoprime
+    case notSameLength
 }
