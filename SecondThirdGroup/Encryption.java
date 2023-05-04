@@ -1,3 +1,10 @@
+//
+//  Encryption.java
+//  sicurezza-informatica
+//
+//  Created by Francesco Paolo Severino on 11/04/23.
+//
+
 import java.io.*;
 
 public class Encryption {

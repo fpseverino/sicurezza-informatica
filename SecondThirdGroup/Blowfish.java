@@ -1,3 +1,10 @@
+//
+//  Blowfish.java
+//  sicurezza-informatica
+//
+//  Created by Francesco Paolo Severino on 07/04/23.
+//
+
 public class Blowfish implements Cipher {
     private static final String[] S_BOX_0 = {
         "d1310ba6", "98dfb5ac", "2ffd72db", "d01adfb7", "b8e1afed", "6a267e96",
