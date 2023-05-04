@@ -8,7 +8,7 @@
 import Foundation
 
 if CommandLine.arguments.count < 4 {
-    print("Usage: main <miller-rabin|crt> [number|numbers] [iterations|numbers]")
+    print("Usage: main <miller-rabin|crt|dh> [number|m|q] [iterations|a]")
     exit(1)
 }
 let method = CommandLine.arguments[1]
@@ -33,6 +33,29 @@ if method == "miller-rabin" {
         print("ERROR: unknown error")
         exit(1)
     }
+} else if method == "dh" {
+    let q = Int(CommandLine.arguments[2])!
+    let a = Int(CommandLine.arguments[3])!
+    do {
+        let alice = try DH(q: q, a: a)
+        let bob = try DH(q: q, a: a)
+        alice.setOtherPublicKey(bob.getMyPublicKey())
+        bob.setOtherPublicKey(alice.getMyPublicKey())
+        print(alice.getSecretSharedKey() == bob.getSecretSharedKey() ? "OK" : "KO")
+        print("Alice's public key: \(alice.getMyPublicKey())")
+        print("Bob's public key: \(bob.getMyPublicKey())")
+        print("Alice's secret shared key: \(alice.getSecretSharedKey()!)")
+        print("Bob's secret shared key: \(bob.getSecretSharedKey()!)")
+    } catch DHError.notPrime {
+        print("ERROR: 'q' must be prime")
+        exit(1)
+    } catch DHError.notPrimitiveRoot {
+        print("ERROR: 'a' must be a primitive root of 'q'")
+        exit(1)
+    } catch {
+        print("ERROR: Unknown error")
+        exit(1)
+    }
 } else {
-    print("Usage: main <miller-rabin|crt> [number|numbers] [iterations|numbers]")
+    print("Usage: main <miller-rabin|crt|dh> [number|m|q] [iterations|a]")
 }
