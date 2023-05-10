@@ -11,7 +11,7 @@ let method = CommandLine.arguments[1]
 if method == "crt" {
     if CommandLine.arguments.count < 6 || CommandLine.arguments.count % 2 != 0 {
         print("ERROR: wrong number of arguments")
-        print("Usage: main <crt|dh|rsa> [m|q|p] [a|a|q] [e] <message>")
+        print("Usage: main <crt|dh|rsa> [m|q|e] [a|a|message]")
         exit(1)
     }
     let m: [Int]
@@ -33,7 +33,7 @@ if method == "crt" {
 } else if method == "dh" {
     if CommandLine.arguments.count != 4 {
         print("ERROR: wrong number of arguments")
-        print("Usage: main <crt|dh|rsa> [m|q|p] [a|a|q] [e] <message>")
+        print("Usage: main <crt|dh|rsa> [m|q|e] [a|a|message]")
         exit(1)
     }
     let q = Int(CommandLine.arguments[2])!
@@ -41,13 +41,13 @@ if method == "crt" {
     do {
         let alice = try DH(q: q, a: a)
         let bob = try DH(q: q, a: a)
-        alice.setOtherPublicKey(bob.getMyPublicKey())
-        bob.setOtherPublicKey(alice.getMyPublicKey())
-        print(alice.getSecretSharedKey() == bob.getSecretSharedKey() ? "OK" : "KO")
-        print("Alice's public key: \(alice.getMyPublicKey())")
-        print("Bob's public key: \(bob.getMyPublicKey())")
-        print("Alice's secret shared key: \(alice.getSecretSharedKey()!)")
-        print("Bob's secret shared key: \(bob.getSecretSharedKey()!)")
+        alice.otherPublicKey = bob.myPublicKey
+        bob.otherPublicKey = alice.myPublicKey
+        print(alice.secretSharedKey == bob.secretSharedKey ? "OK" : "KO")
+        print("Alice public key: \(alice.myPublicKey)")
+        print("Bob public key: \(bob.myPublicKey)")
+        print("Alice shared key: \(alice.secretSharedKey!)")
+        print("Bob shared key: \(bob.secretSharedKey!)")
     } catch DHError.notPrime {
         print("ERROR: 'q' must be prime")
         exit(1)
@@ -59,29 +59,21 @@ if method == "crt" {
         exit(1)
     }
 } else if method == "rsa" {
-    if CommandLine.arguments.count != 6 {
+    if CommandLine.arguments.count != 4 {
         print("ERROR: wrong number of arguments")
-        print("Usage: main <crt|dh|rsa> [m|q|p] [a|a|q] [e] <message>")
+        print("Usage: main <crt|dh|rsa> [m|q|e] [a|a|message]")
         exit(1)
     }
-    let p = Int(CommandLine.arguments[2])!
-    let q = Int(CommandLine.arguments[3])!
-    let e = Int(CommandLine.arguments[4])!
-    let message = Int(CommandLine.arguments[5])!
+    let e = Int(CommandLine.arguments[2])!
+    let message = Int(CommandLine.arguments[3])!
     do {
-        let alice = try RSA(p: p, q: q, e: e)
-        let bob = try RSA(p: p, q: q, e: e)
-        let encryptedMessage = try alice.encrypt(message)
+        let alice = try RSA(e: e)
+        let bob = try RSA(e: e)
+        let encryptedMessage = try alice.encrypt(message, otherPublicKey: bob.publicKey)
         let decryptedMessage = bob.decrypt(encryptedMessage)
         print("Message: \(message)")
         print("Encrypted message: \(encryptedMessage)")
         print("Decrypted message: \(decryptedMessage)")
-    } catch RSAError.notPrime {
-        print("ERROR: 'p' and 'q' must be prime")
-        exit(1)
-    } catch RSAError.samePrimes {
-        print("ERROR: 'p' and 'q' must be different")
-        exit(1)
     } catch RSAError.notCoprime {
         print("ERROR: 'e' and '(p - 1) * (q - 1)' must be coprime")
         exit(1)
@@ -99,5 +91,5 @@ if method == "crt" {
         exit(1)
     }
 } else {
-    print("Usage: main <crt|dh|rsa> [m|q|p] [a|a|q] [e] <message>")
+    print("Usage: main <crt|dh|rsa> [m|q|e] [a|a|message]")
 }

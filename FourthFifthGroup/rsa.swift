@@ -8,24 +8,19 @@
 import Foundation
 
 class RSA {
-    let p: Int
-    let q: Int
-    let n: Int
-    let phi: Int
-    let e: Int
-    let d: Int
+    private let n: Int
+    private let e: Int
+    private let d: Int
 
-    init(p: Int, q: Int, e: Int) throws {
-        if isComposite(p, iterations: 10) || isComposite(q, iterations: 10) {
-            throw RSAError.notPrime
+    init(e: Int) throws {
+        var p = Int.random(in: 100..<1000)
+        var q = Int.random(in: 100..<1000)
+        while isComposite(p, iterations: 10) || isComposite(q, iterations: 10) || p == q {
+            p = Int.random(in: 100..<1000)
+            q = Int.random(in: 100..<1000)
         }
-        if p == q {
-            throw RSAError.samePrimes
-        }
-        self.p = p
-        self.q = q
         n = p * q
-        phi = (p - 1) * (q - 1)
+        let phi = (p - 1) * (q - 1)
         if gcd(e, phi) != 1 {
             throw RSAError.notCoprime
         }
@@ -40,11 +35,15 @@ class RSA {
         }
     }
 
-    func encrypt(_ m: Int) throws -> Int {
-        if m >= n {
+    var publicKey: (e: Int, n: Int) {
+        return (e, n)
+    }
+
+    func encrypt(_ m: Int, otherPublicKey: (e: Int, n: Int)) throws -> Int {
+        if m >= otherPublicKey.n {
             throw RSAError.mTooBig
         }
-        return power(m, e, modulo: n)
+        return power(m, otherPublicKey.e, modulo: otherPublicKey.n)
     }
 
     func decrypt(_ c: Int) -> Int {
@@ -53,8 +52,6 @@ class RSA {
 }
 
 enum RSAError: Error {
-    case notPrime
-    case samePrimes
     case notCoprime
     case eTooBig
     case noInverse

@@ -8,13 +8,33 @@
 import Foundation
 
 class DH {
-    let q: Int
-    let a: Int
-    let privateKey: Int
-    let myPublicKey: Int
+    private let q: Int
+    private let a: Int
+    private let privateKey: Int
+    private let _myPublicKey: Int
 
-    var otherPublicKey: Int?
-    var secretSharedKey: Int?
+    private var _otherPublicKey: Int?
+    private var _secretSharedKey: Int?
+
+    var myPublicKey: Int {
+        return _myPublicKey
+    }
+
+    var otherPublicKey: Int? {
+        get {
+            return _otherPublicKey
+        }
+        set {
+            if let newValue = newValue {
+                _otherPublicKey = newValue
+                _secretSharedKey = power(newValue, privateKey, modulo: q)
+            }
+        }
+    }
+
+    var secretSharedKey: Int? {
+        return _secretSharedKey
+    }
 
     init(q: Int, a: Int) throws {
         if isComposite(q, iterations: 10) {
@@ -26,20 +46,7 @@ class DH {
         self.q = q
         self.a = a
         privateKey = Int.random(in: 0..<q)
-        myPublicKey = power(a, privateKey, modulo: q)
-    }
-
-    func setOtherPublicKey(_ otherPublicKey: Int) {
-        self.otherPublicKey = otherPublicKey
-        secretSharedKey = power(otherPublicKey, privateKey, modulo: q)
-    }
-
-    func getMyPublicKey() -> Int {
-        return myPublicKey
-    }
-
-    func getSecretSharedKey() -> Int? {
-        return secretSharedKey
+        _myPublicKey = power(a, privateKey, modulo: q)
     }
 }
 
