@@ -7,6 +7,11 @@
 
 import Foundation
 
+if CommandLine.arguments.count < 2 {
+    print("ERROR: wrong number of arguments")
+    print("Usage: main <crt|dh|rsa> [m|q|e] [a|a|message]")
+    exit(1)
+}
 let method = CommandLine.arguments[1]
 if method == "crt" {
     if CommandLine.arguments.count < 6 || CommandLine.arguments.count % 2 != 0 {

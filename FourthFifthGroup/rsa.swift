@@ -8,11 +8,12 @@
 import Foundation
 
 class RSA {
-    private let n: Int
-    private let e: Int
-    private let d: Int
+    private let n: Int // n = p * q, public
+    private let e: Int // e and phi must be coprime, 1 < e < phi, public
+    private let d: Int // inverse of e modulo phi, private
 
     init(e: Int) throws {
+        // p and q: random different primes, private
         var p = Int.random(in: 100..<1000)
         var q = Int.random(in: 100..<1000)
         while isComposite(p, iterations: 10) || isComposite(q, iterations: 10) || p == q {
