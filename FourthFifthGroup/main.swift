@@ -70,7 +70,7 @@ if method == "crt" {
         exit(1)
     }
     let e = Int(CommandLine.arguments[2])!
-    let message = Int(CommandLine.arguments[3])!
+    let message = CommandLine.arguments[3]
     do {
         let alice = try RSA(e: e)
         let bob = try RSA(e: e)

@@ -50,6 +50,23 @@ class RSA {
     func decrypt(_ c: Int) -> Int {
         return power(c, d, modulo: n)
     }
+
+    func encrypt(_ m: String, otherPublicKey: (e: Int, n: Int)) throws -> [Int] {
+        var encryptedMessage: [Int] = []
+        for c in m {
+            let ascii = Int(c.asciiValue!)
+            encryptedMessage.append(try encrypt(ascii, otherPublicKey: otherPublicKey))
+        }
+        return encryptedMessage
+    }
+
+    func decrypt(_ c: [Int]) -> String {
+        var decryptedMessage = ""
+        for i in c {
+            decryptedMessage.append(Character(UnicodeScalar(decrypt(i))!))
+        }
+        return decryptedMessage
+    }
 }
 
 enum RSAError: Error {
