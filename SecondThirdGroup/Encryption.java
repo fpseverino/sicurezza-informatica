@@ -23,13 +23,13 @@ public class Encryption {
             try {
                 if (args[0].equals("test")) test(Integer.parseInt(args[1]));
             } catch (ArrayIndexOutOfBoundsException e2) {
-                System.out.println("Usage: java Encryption <e|d> <cipher> <mode> <key> <input file> <output file>");
+                System.out.println("Usage: java Encryption <e|d|test> <cipher|iterations> <mode> <key> <input file> <output file>");
                 return;
             }
             return;
         }
         if (!choice.equals("e") && !choice.equals("d") && !choice.equals("E") && !choice.equals("D")) {
-            System.out.println("Usage: java Encryption <e|d> <cipher> <mode> <key> <input file> <output file>");
+            System.out.println("Usage: java Encryption <e|d|test> <cipher|iterations> <mode> <key> <input file> <output file>");
             return;
         }
         if (cipherName.equals("des")) {
@@ -59,12 +59,12 @@ public class Encryption {
             blockSize = 128;
         } else {
             System.out.println("ERROR: Invalid cipher name");
-            System.out.println("Usage: java Encryption <e|d> <cipher> <mode> <key> <input file> <output file>");
+            System.out.println("Usage: java Encryption <e|d|test> <cipher|iterations> <mode> <key> <input file> <output file>");
             return;
         }
         if (!mode.equals("ecb") && !mode.equals("cbc") && !mode.equals("cfb") && !mode.equals("ofb") && !mode.equals("ctr") && !mode.equals("ECB") && !mode.equals("CBC") && !mode.equals("CFB") && !mode.equals("OFB") && !mode.equals("CTR")) {
             System.out.println("ERROR: Invalid mode");
-            System.out.println("Usage: java Encryption <e|d> <cipher> <mode> <key> <input file> <output file>");
+            System.out.println("Usage: java Encryption <e|d|test> <cipher|iterations> <mode> <key> <input file> <output file>");
             return;
         }
         String fileContentsBinary = textToBinary(pad(readFile(inputFileName), blockSize));
