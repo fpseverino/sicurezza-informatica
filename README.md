@@ -1,7 +1,7 @@
 # sicurezza-informatica
-## Corso di Sicurezza Informatica UNIKORE A.A. 2022/2023
+Corso di Sicurezza Informatica UNIKORE A.A. 2022/2023
 
-### Approfondimento tramite realizzazione in un linguaggio di programmazione degli algoritmi di crittografia studiati durante il corso.
+## Approfondimento tramite realizzazione in un linguaggio di programmazione degli algoritmi di crittografia studiati durante il corso.
 
 Si realizzi in un linguaggio di programmazione a scelta dello studente (C/Java/Python/...) almeno un programma di ciascun gruppo sotto riportato per la crittografia/decrittografia di un testo.
 
